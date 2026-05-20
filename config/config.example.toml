@@ -5,7 +5,7 @@
 # Default command prefix for replies / branding; not used for slash commands.
 name = "Yuzu"
 # GitHub repo url shown by /changelog and /info.
-github_url = "https://github.com/your-org/yuzu-bot"
+github_url = "https://github.com/HyperSoWeak/yuzu-bot"
 
 [command]
 # Default per-user per-command cooldown in seconds; commands may override.
