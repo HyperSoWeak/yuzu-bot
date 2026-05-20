@@ -22,7 +22,7 @@ COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --prod
-RUN pnpm prisma generate
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/dist ./dist
 COPY config ./config
 
