@@ -18,13 +18,15 @@ RUN pnpm build
 
 FROM base AS runtime
 ENV NODE_ENV=production
+RUN apk add --no-cache openssl
 COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --prod
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+RUN pnpm prisma generate
 COPY --from=build /app/dist ./dist
 COPY config ./config
+RUN chown -R node:node /app
 
 USER node
 CMD ["sh", "-c", "pnpm prisma:migrate && pnpm start"]
