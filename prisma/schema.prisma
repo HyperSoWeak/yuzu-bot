@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GuildSettings {
+  guildId                      String   @id @map("guild_id")
+  keywordStatsEnabled          Boolean  @default(true) @map("keyword_stats_enabled")
+  keywordRepliesEnabled        Boolean  @default(true) @map("keyword_replies_enabled")
+  keywordReplyCooldownSeconds  Int      @default(10)   @map("keyword_reply_cooldown_seconds")
+  achievementsEnabled          Boolean  @default(true) @map("achievements_enabled")
+  achievementAnnounceChannelId String?  @map("achievement_announce_channel_id")
+  colorRoleEnabled             Boolean  @default(false) @map("color_role_enabled")
+  auditLogChannelId            String?  @map("audit_log_channel_id")
+  createdAt                    DateTime @default(now()) @map("created_at")
+  updatedAt                    DateTime @updatedAt @map("updated_at")
+
+  @@map("guild_settings")
+}
+
+model UserStat {
+  id        String   @id @default(cuid())
+  guildId   String   @map("guild_id")
+  userId    String   @map("user_id")
+  statKey   String   @map("stat_key")
+  value     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([guildId, userId, statKey])
+  @@index([guildId, statKey, value(sort: Desc)])
+  @@map("user_stats")
+}
+
+enum KeywordKind {
+  STAT
+  REPLY
+
+  @@map("keyword_kind")
+}
+
+enum MatchMode {
+  CONTAINS
+  EQUALS
+  REGEX
+
+  @@map("match_mode")
+}
+
+/// One trigger row per (guild, group, trigger). Many triggers can map to the same group.
+model KeywordTrigger {
+  id        String      @id @default(cuid())
+  guildId   String      @map("guild_id")
+  kind      KeywordKind
+  /// statKey when kind=STAT, replyKey when kind=REPLY
+  groupKey  String      @map("group_key")
+  trigger   String
+  matchMode MatchMode   @default(CONTAINS) @map("match_mode")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@unique([guildId, kind, groupKey, trigger])
+  @@index([guildId, kind])
+  @@map("keyword_triggers")
+}
+
+/// Random reply pool for a given (guild, replyKey or statKey group).
+/// For STAT groups this is the bot's reply when the stat increments.
+/// For REPLY groups this is the reply pool itself.
+model KeywordReply {
+  id        String      @id @default(cuid())
+  guildId   String      @map("guild_id")
+  kind      KeywordKind
+  groupKey  String      @map("group_key")
+  content   String
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@index([guildId, kind, groupKey])
+  @@map("keyword_replies")
+}
+
+/// Static achievement definitions, seeded at boot.
+model Achievement {
+  key         String   @id
+  name        String
+  description String
+  ruleType    String   @map("rule_type")
+  ruleConfig  Json     @map("rule_config")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id             String   @id @default(cuid())
+  guildId        String   @map("guild_id")
+  userId         String   @map("user_id")
+  achievementKey String   @map("achievement_key")
+  earnedAt       DateTime @default(now()) @map("earned_at")
+
+  achievement Achievement @relation(fields: [achievementKey], references: [key], onDelete: Cascade)
+
+  @@unique([guildId, userId, achievementKey])
+  @@index([guildId, achievementKey])
+  @@map("user_achievements")
+}
+
+model ReactionRoleMenu {
+  id        String   @id @default(cuid())
+  guildId   String   @map("guild_id")
+  channelId String   @map("channel_id")
+  messageId String   @unique @map("message_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  mappings ReactionRoleMapping[]
+
+  @@index([guildId])
+  @@map("reaction_role_menus")
+}
+
+model ReactionRoleMapping {
+  id       String  @id @default(cuid())
+  menuId   String  @map("menu_id")
+  /// unicode emoji or custom emoji id (`name:id`); null when buttonId is set
+  emoji    String?
+  /// custom_id for component buttons; null when emoji is set
+  buttonId String? @map("button_id")
+  roleId   String  @map("role_id")
+
+  menu ReactionRoleMenu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([menuId, emoji, buttonId])
+  @@map("reaction_role_mappings")
+}
+
+model ColorRoleAssignment {
+  guildId  String @map("guild_id")
+  userId   String @map("user_id")
+  roleId   String @map("role_id")
+  hexColor String @map("hex_color")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([guildId, userId])
+  @@index([guildId, hexColor])
+  @@map("color_role_assignments")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  guildId    String   @map("guild_id")
+  actorId    String   @map("actor_id")
+  action     String
+  targetType String?  @map("target_type")
+  targetId   String?  @map("target_id")
+  payload    Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([guildId, createdAt(sort: Desc)])
+  @@index([guildId, action])
+  @@map("audit_logs")
+}

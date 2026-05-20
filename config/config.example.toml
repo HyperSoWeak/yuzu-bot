@@ -1,0 +1,24 @@
+# Yuzu bot configuration — non-sensitive settings.
+# Sensitive values (tokens, DB URLs) belong in .env, not here.
+
+[bot]
+# Default command prefix for replies / branding; not used for slash commands.
+name = "Yuzu"
+# GitHub repo url shown by /changelog and /info.
+github_url = "https://github.com/your-org/yuzu-bot"
+
+[command]
+# Default per-user per-command cooldown in seconds; commands may override.
+default_cooldown_seconds = 3
+
+[keyword]
+# Hard cap on triggers loaded per guild (cache safety).
+max_triggers_per_guild = 1000
+
+[achievement]
+# When true, announce new achievements to the configured guild channel.
+announce_enabled = true
+
+[color_role]
+# Prefix for role names Yuzu manages (helps humans identify them).
+role_name_prefix = "color:"
