@@ -8,6 +8,7 @@ import { commandRegistry } from '@/core/command/registry.js';
 import { dispatchInteraction } from '@/core/command/dispatcher.js';
 import { deployCommands } from '@/core/command/deploy.js';
 import { allCommands } from '@/commands/index.js';
+import { handleMessageForKeywords } from '@/features/keyword/listener.js';
 
 async function main() {
   const env = loadEnv();
@@ -45,6 +46,10 @@ async function main() {
     if (interaction.isChatInputCommand()) {
       void dispatchInteraction(interaction);
     }
+  });
+
+  client.on(Events.MessageCreate, (message) => {
+    void handleMessageForKeywords(message);
   });
 
   const shutdown = async (signal: string) => {
