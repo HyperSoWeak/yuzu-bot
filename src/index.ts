@@ -1,9 +1,13 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits, Partials } from 'discord.js';
+import { Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { loadEnv } from '@/config/env.js';
 import { loadConfig } from '@/config/config.js';
 import { logger } from '@/core/logger.js';
 import { prisma } from '@/db/client.js';
+import { commandRegistry } from '@/core/command/registry.js';
+import { dispatchInteraction } from '@/core/command/dispatcher.js';
+import { deployCommands } from '@/core/command/deploy.js';
+import { allCommands } from '@/commands/index.js';
 
 async function main() {
   const env = loadEnv();
@@ -13,6 +17,9 @@ async function main() {
 
   await prisma.$connect();
   logger.info('postgres connected');
+
+  commandRegistry.registerAll(allCommands);
+  logger.info({ count: commandRegistry.size() }, 'commands registered');
 
   const client = new Client({
     intents: [
@@ -25,8 +32,19 @@ async function main() {
     partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember],
   });
 
-  client.once('ready', (c) => {
+  client.once(Events.ClientReady, async (c) => {
     logger.info({ user: c.user.tag, guilds: c.guilds.cache.size }, 'discord ready');
+    try {
+      await deployCommands();
+    } catch (err) {
+      logger.error({ err }, 'command deploy failed');
+    }
+  });
+
+  client.on(Events.InteractionCreate, (interaction) => {
+    if (interaction.isChatInputCommand()) {
+      void dispatchInteraction(interaction);
+    }
   });
 
   const shutdown = async (signal: string) => {

@@ -15,6 +15,8 @@ const EnvSchema = z.object({
         .map((x) => x.trim())
         .filter(Boolean),
     ),
+  /** Optional: register commands to this guild only (instant update for dev). */
+  DISCORD_DEV_GUILD_ID: z.string().optional(),
 
   DATABASE_URL: z.string().url(),
 });
