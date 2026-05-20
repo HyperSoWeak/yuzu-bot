@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.0.0...v1.0.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* **build:** resolve @/ path aliases in compiled output via tsc-alias ([857277f](https://github.com/HyperSoWeak/yuzu-bot/commit/857277fa7f4d29cba2df9d8bc72861da947e47d5))
+* **docker:** fix Prisma engine setup on Alpine runtime ([28b1666](https://github.com/HyperSoWeak/yuzu-bot/commit/28b16664daae6d026940899050e264a65222257e))
+* **docker:** use external DNS to fix musl libc resolution failure ([e0599a5](https://github.com/HyperSoWeak/yuzu-bot/commit/e0599a583ad50c904e75c8175a2fee4187f28f60))
+
 ## 1.0.0 (2026-05-20)
 
 
