@@ -6,7 +6,7 @@ import { z } from 'zod';
 const ConfigSchema = z.object({
   bot: z.object({
     name: z.string().default('Yuzu'),
-    github_url: z.string().url().default('https://github.com/your-org/yuzu-bot'),
+    github_url: z.string().url().default('https://github.com/HyperSoWeak/yuzu-bot'),
   }),
   command: z.object({
     default_cooldown_seconds: z.number().int().nonnegative().default(3),
