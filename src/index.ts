@@ -11,6 +11,7 @@ import { allCommands } from '@/commands/index.js';
 import { handleMessageForKeywords } from '@/features/keyword/listener.js';
 import { seedAchievements } from '@/features/achievement/service.js';
 import { startAchievementEngine } from '@/features/achievement/engine.js';
+import { registerReactionRoleListeners } from '@/features/reaction-role/listeners.js';
 
 async function main() {
   const env = loadEnv();
@@ -40,6 +41,7 @@ async function main() {
   client.once(Events.ClientReady, async (c) => {
     logger.info({ user: c.user.tag, guilds: c.guilds.cache.size }, 'discord ready');
     startAchievementEngine(c);
+    registerReactionRoleListeners(c);
     try {
       await deployCommands();
     } catch (err) {
