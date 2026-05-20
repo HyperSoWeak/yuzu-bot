@@ -5,6 +5,8 @@ import { keywordCommands } from './keyword/index.js';
 import { achievementCommands } from './achievement/index.js';
 import { reactionRoleCommands } from './reaction-role/index.js';
 import { colorRoleCommands } from './color-role/index.js';
+import { leaderboardCommands } from './leaderboard/index.js';
+import { ownerCommands } from './owner/index.js';
 
 export const allCommands: readonly Command[] = [
   ...infoCommands,
@@ -13,4 +15,6 @@ export const allCommands: readonly Command[] = [
   ...achievementCommands,
   ...reactionRoleCommands,
   ...colorRoleCommands,
+  ...leaderboardCommands,
+  ...ownerCommands,
 ];

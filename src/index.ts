@@ -8,6 +8,7 @@ import { commandRegistry } from '@/core/command/registry.js';
 import { dispatchInteraction } from '@/core/command/dispatcher.js';
 import { deployCommands } from '@/core/command/deploy.js';
 import { allCommands } from '@/commands/index.js';
+import { leaderboardAutocomplete } from '@/commands/leaderboard/index.js';
 import { handleMessageForKeywords } from '@/features/keyword/listener.js';
 import { seedAchievements } from '@/features/achievement/service.js';
 import { startAchievementEngine } from '@/features/achievement/engine.js';
@@ -52,6 +53,17 @@ async function main() {
   client.on(Events.InteractionCreate, (interaction) => {
     if (interaction.isChatInputCommand()) {
       void dispatchInteraction(interaction);
+      return;
+    }
+    if (interaction.isAutocomplete()) {
+      if (interaction.commandName === 'leaderboard' && interaction.guildId) {
+        const focused = interaction.options.getFocused(true);
+        if (focused.name === 'stat') {
+          void leaderboardAutocomplete(interaction.guildId, focused.value)
+            .then((choices) => interaction.respond(choices))
+            .catch((err) => logger.warn({ err }, 'autocomplete failed'));
+        }
+      }
     }
   });
 
