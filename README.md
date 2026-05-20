@@ -1,12 +1,6 @@
 # Yuzu Discord Bot
 
-可擴充、可長期維護的 Discord Bot。
-
-需求文件：
-
-- [`docs/v0.md`](docs/v0.md) — 整體需求
-- [`docs/reaction-role.md`](docs/reaction-role.md) — Reaction / Button role
-- [`docs/color-role.md`](docs/color-role.md) — Self color role
+An extensible, long-term-maintainable Discord bot.
 
 ## Tech stack
 
@@ -18,34 +12,34 @@
 - Docker Compose (bot + postgres + backup sidecar)
 - GitHub Actions CI + release-please
 
-## 本地開發
+## Local development
 
 ```bash
 pnpm install
-cp .env.example .env                       # 填 DISCORD_TOKEN / CLIENT_ID / OWNER_IDS
+cp .env.example .env                       # fill DISCORD_TOKEN / CLIENT_ID / OWNER_IDS
 cp config/config.example.toml config/config.toml
 
-# 啟動本地 Postgres (只開 postgres service)
+# Start a local Postgres (postgres service only)
 docker compose up -d postgres
 
-pnpm prisma:migrate:dev                    # 套用 schema
+pnpm prisma:migrate:dev                    # apply schema
 pnpm dev                                   # tsx watch
 ```
 
-設定 `DISCORD_DEV_GUILD_ID` 後，slash command 會註冊到單一 guild，更新立即生效（global 註冊最久需 1 小時）。
+Set `DISCORD_DEV_GUILD_ID` to register slash commands to a single guild for instant updates (global registration can take up to 1 hour to propagate).
 
-## 部署
+## Deployment
 
 ```bash
 docker compose up -d --build
 ```
 
-- Bot container 啟動時自動跑 `prisma migrate deploy` + `pnpm start`。
-- Postgres backup：每日 03:00 UTC `pg_dump` 到 `./backups/yuzu-YYYYMMDD-HHMMSS.sql.gz`，保留 7 天，自動刪除過期檔。
+- The bot container runs `prisma migrate deploy` then `pnpm start` on boot.
+- Postgres backup: daily at 03:00 UTC, `pg_dump` to `./backups/yuzu-YYYYMMDD-HHMMSS.sql.gz`, 7-day retention, older files pruned automatically.
 
-## 指令
+## Commands
 
-| 分類                  | 指令                                                                                                                                                     |
+| Category              | Commands                                                                                                                                                 |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Info                  | `/ping` `/botinfo` `/guildinfo` `/userinfo` `/help` `/changelog`                                                                                         |
 | Settings (admin)      | `/settings show \| keyword-stats \| keyword-replies \| keyword-reply-cooldown \| achievements \| achievement-channel \| color-role \| audit-log-channel` |
@@ -56,7 +50,7 @@ docker compose up -d --build
 | Color role            | `/color set \| show \| clear`                                                                                                                            |
 | Owner only            | `/owner ping \| health \| say \| set-stat`                                                                                                               |
 
-## 開發指令
+## Dev scripts
 
 ```bash
 pnpm lint            # ESLint
@@ -67,7 +61,7 @@ pnpm test            # vitest run
 pnpm prisma:migrate:dev
 ```
 
-## 架構
+## Architecture
 
 ```
 src/
@@ -83,20 +77,20 @@ src/
 │   ├── achievement/ # engine + rules/*.ts (one file per rule type)
 │   ├── reaction-role/
 │   └── color-role/
-├── commands/       # 按分類分資料夾
+├── commands/       # grouped by category
 └── db/             # prisma client
 ```
 
-新增功能：
+Extension points:
 
-- 新指令：在 `src/commands/<category>/*.ts` export `Command`，加入該分類的 `index.ts` 陣列。
-- 新成就規則：在 `src/features/achievement/rules/<type>.ts` 實作 `AchievementRule` 並 `registerRule()`。
-- 新成就：在 `src/features/achievement/definitions.ts` 新增條目。
-- 新統計類型：admin 直接用 `/keyword trigger add kind:stat group:<name> ...`。
-- 新 guild setting：schema 加欄位 → migration → service `SettingsPatch` 加 key → `/settings` 加 subcommand。
+- **New command**: export a `Command` from `src/commands/<category>/*.ts` and add it to that category's `index.ts` array.
+- **New achievement rule type**: implement `AchievementRule` in `src/features/achievement/rules/<type>.ts` and call `registerRule()`.
+- **New achievement**: add an entry to `src/features/achievement/definitions.ts`.
+- **New stat type**: admins just run `/keyword trigger add kind:stat group:<name> ...`.
+- **New guild setting**: add the column in `prisma/schema.prisma` → migration → extend `SettingsPatch` in the service → add a `/settings` subcommand.
 
 ## Release
 
-採用 [release-please](https://github.com/googleapis/release-please)：合併到 `main` 後 action 自動產生 release PR；merge release PR 即發 tag / GitHub release / 更新 `CHANGELOG.md`。
+Uses [release-please](https://github.com/googleapis/release-please). When commits land on `main`, the action opens a release PR; merging that PR cuts a tag, creates a GitHub Release, and updates `CHANGELOG.md`.
 
-Commit 訊息請遵循 [Conventional Commits](https://www.conventionalcommits.org/)。
+Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/).
