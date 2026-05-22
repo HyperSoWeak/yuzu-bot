@@ -45,7 +45,7 @@ const leaderboardCommand: Command = {
       .setTitle(`排行榜 · ${statKey}`)
       .setColor(0xffcc66)
       .setDescription(lines.join('\n'));
-    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed] });
   },
 };
 

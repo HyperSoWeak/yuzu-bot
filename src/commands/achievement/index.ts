@@ -40,10 +40,7 @@ const achievementCommand: Command = {
         return;
       }
       const lines = items.map((a) => `🏆 **${a.name}** — ${a.description}`);
-      await interaction.reply({
-        content: truncateField(lines.join('\n')),
-        flags: MessageFlags.Ephemeral,
-      });
+      await interaction.reply({ content: truncateField(lines.join('\n')) });
       return;
     }
 
@@ -70,7 +67,7 @@ const achievementCommand: Command = {
               .join('\n'),
           ),
         );
-      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      await interaction.reply({ embeds: [embed] });
       return;
     }
 
@@ -88,7 +85,7 @@ const achievementCommand: Command = {
         .setTitle('成就排行榜')
         .setColor(0xffcc66)
         .setDescription(lines.join('\n'));
-      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      await interaction.reply({ embeds: [embed] });
       return;
     }
 
