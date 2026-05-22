@@ -34,6 +34,7 @@ Release tooling is [release-please](https://github.com/googleapis/release-please
 - Imperative present tense (`add X`, not `added X`).
 - Scope is optional; use it to point at the affected feature: `feat(keyword): ...`, `fix(color-role): ...`.
 - Body explains the **why**, not the what. Skip it for trivial commits.
+- No `Co-authored-by` trailers. Do not add them.
 - Branch naming: `type/issue-id-name` when working off branches; direct push to `main` is fine for solo work.
 
 ## Before every commit
@@ -70,7 +71,6 @@ When adding new event handlers / listeners, follow the same pattern: try/catch a
 
 ## Where things go
 
-- **New slash command**: `src/commands/<category>/*.ts` exports default `Command`, registered in that category's `index.ts` array.
 - **New achievement rule type**: `src/features/achievement/rules/<type>.ts`, calls `registerRule()`. Side-effect import from `rules/index.ts`.
 - **New achievement instance**: append to `src/features/achievement/definitions.ts`; seeded on boot via `seedAchievements()`.
 - **New stat type**: no code change — admins run `/keyword trigger add kind:stat group:<name> ...`.
@@ -97,7 +97,6 @@ When adding new event handlers / listeners, follow the same pattern: try/catch a
 
 - Owner-only commands check `interaction.user.id` against `env.DISCORD_OWNER_IDS` (set in `.env`).
 - Admin commands set `setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)` AND set `permissions: { adminOnly: true }` so the dispatcher rechecks at runtime.
-- Color role / reaction role mutations require Manage Roles and respect role hierarchy — failures surface as `CommandError` to the user, not crashes.
 
 ## Destructive actions
 
