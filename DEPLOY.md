@@ -76,7 +76,7 @@ A sidecar container runs `pg_dump` daily at **03:00 UTC** → `BACKUP_DIR/yuzu-Y
 ### Manual backup
 
 ```bash
-docker compose exec backup backup.sh
+docker compose exec backup sh /usr/local/bin/backup.sh
 ```
 
 ### Restore

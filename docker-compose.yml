@@ -40,7 +40,7 @@ services:
 
   backup:
     image: postgres:16-alpine
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "0:0"
     restart: unless-stopped
     depends_on:
       postgres:

@@ -76,7 +76,7 @@ When adding new event handlers / listeners, follow the same pattern: try/catch a
 - **New stat type**: no code change — admins run `/keyword trigger add kind:stat group:<name> ...`.
 - **New guild setting**:
   1. Add column in `prisma/schema.prisma`
-  2. `pnpm prisma migrate dev --name <descriptive>`
+  2. `pnpm prisma:migrate:dev --name <descriptive>`
   3. Extend `SettingsPatch` in `src/features/settings/service.ts`
   4. Add a subcommand in `src/commands/settings/index.ts` and an audit log call
 
