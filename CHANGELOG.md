@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.1.0...v1.1.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* **backup:** invoke script via sh and run as host user ([902c100](https://github.com/HyperSoWeak/yuzu-bot/commit/902c100021e34bcaaf414d28eaefc70a5d7f751c))
+* **backup:** use root user for rootless Docker; fix docs ([8cdaa42](https://github.com/HyperSoWeak/yuzu-bot/commit/8cdaa423024ab30b0550204a391cfec17150fc5e))
+
 ## [1.1.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.0.1...v1.1.0) (2026-05-22)
 
 
