@@ -9,66 +9,52 @@
 
 ## First-time setup
 
-### 1. Copy config files
-
 ```bash
 cp .env.example .env
 cp config/config.example.toml config/config.toml
 ```
 
-### 2. Fill in `.env`
-
-Only two values are strictly required — the bot will refuse to start without them:
+Edit `.env`. Only two values are required — the bot refuses to start without them:
 
 ```env
 DISCORD_TOKEN=<bot token>
 DISCORD_CLIENT_ID=<application id>
 ```
 
-Everything else has a working default. Set these if you want to override them:
+| Variable                | Default     | Notes                                                                 |
+| ----------------------- | ----------- | --------------------------------------------------------------------- |
+| `DISCORD_OWNER_IDS`     | _(empty)_   | Comma-separated user IDs; owner-only commands won't work without this |
+| `POSTGRES_PASSWORD`     | `yuzu`      | Postgres is loopback-only, but change this on shared servers          |
+| `POSTGRES_USER`         | `yuzu`      |                                                                       |
+| `POSTGRES_DB`           | `yuzu`      |                                                                       |
+| `BACKUP_DIR`            | `./backups` | Host path where `pg_dump` files are written                           |
+| `BACKUP_RETENTION_DAYS` | `7`         | Days to keep backup files                                             |
+| `LOG_LEVEL`             | `info`      | `debug` / `info` / `warn` / `error`                                   |
 
-| Variable            | Default     | Notes                                                                 |
-| ------------------- | ----------- | --------------------------------------------------------------------- |
-| `DISCORD_OWNER_IDS` | _(empty)_   | Comma-separated user IDs; owner-only commands won't work without this |
-| `POSTGRES_PASSWORD` | `yuzu`      | Postgres is loopback-only, but change this on shared servers          |
-| `POSTGRES_USER`     | `yuzu`      |                                                                       |
-| `POSTGRES_DB`       | `yuzu`      |                                                                       |
-| `BACKUP_DIR`        | `./backups` | Host path where `pg_dump` files are written                           |
-| `LOG_LEVEL`         | `info`      | `debug` / `info` / `warn` / `error`                                   |
+> **Do not set `DATABASE_URL`** — Docker Compose assembles it from `POSTGRES_*` and injects it automatically.
 
-> **Do not set `DATABASE_URL`** — Docker Compose assembles it from `POSTGRES_*` and injects it into the bot container automatically.
+Edit `config/config.toml` if needed (non-secret settings; defaults are reasonable).
 
-### 3. Edit `config/config.toml` if needed
-
-Non-secret settings (bot name, cooldowns, feature flags). The defaults are reasonable; only edit what you need.
-
-### 4. Start
+Then start:
 
 ```bash
 docker compose up -d --build
 ```
 
-On first boot the bot container runs `prisma migrate deploy` to initialise the schema, then starts. Slash commands are registered to Discord automatically on every startup.
+On first boot the bot runs `prisma migrate deploy` to initialise the schema, then starts. Slash commands are registered automatically on startup.
 
 ---
 
-## Verifying the deployment
+## Verifying
 
 ```bash
-docker compose ps                  # all three services should show "Up"
-docker compose logs -f bot         # watch startup logs
+docker compose ps          # all three services should show "Up"
+docker compose logs -f bot  # watch startup logs
 ```
 
-Expected startup sequence in logs:
+Healthy startup ends with `discord ready` and `deployed global commands`.
 
-```
-postgres connected
-commands registered
-discord ready
-deployed global commands
-```
-
-> Global slash commands can take up to 1 hour to appear in Discord. For instant updates, set `DISCORD_DEV_GUILD_ID=<your guild id>` in `.env` — commands will register to that guild only.
+> Global slash commands can take up to 1 hour to appear in Discord. Set `DISCORD_DEV_GUILD_ID=<your guild id>` in `.env` for instant guild registration.
 
 ---
 
@@ -79,22 +65,13 @@ git pull
 docker compose up -d --build
 ```
 
-The bot container re-runs `prisma migrate deploy` on every start, so new migrations are applied automatically.
+New migrations are applied automatically on startup.
 
 ---
 
 ## Backups
 
-A sidecar container runs `pg_dump` daily at **03:00 UTC**, writing compressed files to `BACKUP_DIR`:
-
-```
-backups/
-  yuzu-20260520-030000.sql.gz
-  yuzu-20260519-030000.sql.gz
-  ...
-```
-
-Files older than 7 days are pruned automatically. To change retention, set `BACKUP_RETENTION_DAYS` in `.env`.
+A sidecar container runs `pg_dump` daily at **03:00 UTC** → `BACKUP_DIR/yuzu-YYYYMMDD-HHMMSS.sql.gz`. Files older than `BACKUP_RETENTION_DAYS` are pruned automatically.
 
 ### Manual backup
 
@@ -102,7 +79,7 @@ Files older than 7 days are pruned automatically. To change retention, set `BACK
 docker compose exec backup backup.sh
 ```
 
-### Restore from backup
+### Restore
 
 ```bash
 gunzip -c backups/yuzu-<timestamp>.sql.gz | \
@@ -126,7 +103,7 @@ docker compose restart bot   # restart bot only (e.g. after .env change)
 | Symptom                                | Likely cause                                                                                       |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Bot exits immediately on start         | Missing `DISCORD_TOKEN` or `DISCORD_CLIENT_ID` in `.env`                                           |
-| `prisma migrate deploy` error          | Postgres not healthy yet; Docker Compose should retry — check `docker compose logs postgres`       |
+| `prisma migrate deploy` error          | Postgres not healthy yet — check `docker compose logs postgres`                                    |
 | Slash commands not appearing           | Global propagation delay (up to 1 hour); set `DISCORD_DEV_GUILD_ID` for instant guild registration |
 | Owner commands say "permission denied" | `DISCORD_OWNER_IDS` not set or wrong user ID                                                       |
 | Color roles not applying               | Bot role is too low in the server hierarchy; move it above the color roles                         |

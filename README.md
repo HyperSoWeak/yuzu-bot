@@ -57,6 +57,8 @@ On start the bot container runs `prisma migrate deploy` then `pnpm start`. No ma
 
 Postgres backup: daily `pg_dump` at 03:00 UTC → `./backups/yuzu-YYYYMMDD-HHMMSS.sql.gz`, 7-day retention.
 
+See [DEPLOY.md](DEPLOY.md) for full setup instructions, env variables, and troubleshooting.
+
 ## Dev scripts
 
 ```bash
