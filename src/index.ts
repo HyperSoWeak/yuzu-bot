@@ -10,6 +10,7 @@ import { deployCommands } from '@/core/command/deploy.js';
 import { allCommands } from '@/commands/index.js';
 import { leaderboardAutocomplete } from '@/commands/leaderboard/index.js';
 import { handleMessageForKeywords } from '@/features/keyword/listener.js';
+import { getCompiledTriggers } from '@/features/keyword/service.js';
 import { seedAchievements } from '@/features/achievement/service.js';
 import { startAchievementEngine } from '@/features/achievement/engine.js';
 import { registerReactionRoleListeners } from '@/features/reaction-role/listeners.js';
@@ -24,6 +25,9 @@ async function main() {
   logger.info('postgres connected');
 
   await seedAchievements();
+
+  const triggers = getCompiledTriggers();
+  logger.info({ count: triggers.length }, 'keyword triggers compiled');
 
   commandRegistry.registerAll(allCommands);
   logger.info({ count: commandRegistry.size() }, 'commands registered');
@@ -56,10 +60,10 @@ async function main() {
       return;
     }
     if (interaction.isAutocomplete()) {
-      if (interaction.commandName === 'leaderboard' && interaction.guildId) {
+      if (interaction.commandName === 'leaderboard') {
         const focused = interaction.options.getFocused(true);
         if (focused.name === 'stat') {
-          void leaderboardAutocomplete(interaction.guildId, focused.value)
+          void leaderboardAutocomplete(focused.value)
             .then((choices) => interaction.respond(choices))
             .catch((err) => logger.warn({ err }, 'autocomplete failed'));
         }

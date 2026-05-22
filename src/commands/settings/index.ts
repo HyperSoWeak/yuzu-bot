@@ -1,4 +1,5 @@
-import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ChannelType } from 'discord.js';
 import type { Command } from '@/core/command/types.js';
 import { CommandError } from '@/core/command/errors.js';
 import { getSettings, updateSettings, type SettingsPatch } from '@/features/settings/service.js';
@@ -41,17 +42,6 @@ const data = new SlashCommandBuilder()
       .setName('achievements')
       .setDescription('開啟 / 關閉成就系統')
       .addBooleanOption((o) => o.setName('enabled').setDescription('啟用').setRequired(true)),
-  )
-  .addSubcommand((s) =>
-    s
-      .setName('achievement-channel')
-      .setDescription('設定成就公告頻道；留空為清除')
-      .addChannelOption((o) =>
-        o
-          .setName('channel')
-          .setDescription('文字頻道；不選即為清除')
-          .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement),
-      ),
   )
   .addSubcommand((s) =>
     s
@@ -113,12 +103,6 @@ const settingsCommand: Command = {
         const v = interaction.options.getBoolean('enabled', true);
         patch = { achievementsEnabled: v };
         label = `成就系統 = ${v}`;
-        break;
-      }
-      case 'achievement-channel': {
-        const c = interaction.options.getChannel('channel');
-        patch = { achievementAnnounceChannelId: c?.id ?? null };
-        label = c ? `成就公告頻道 = <#${c.id}>` : '成就公告頻道已清除';
         break;
       }
       case 'color-role': {

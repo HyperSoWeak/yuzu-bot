@@ -114,7 +114,7 @@ const ownerCommand: Command = {
       const user = interaction.options.getUser('user', true);
       const statKey = interaction.options.getString('stat', true);
       const value = interaction.options.getInteger('value', true);
-      const newVal = await setStat({ guildId, userId: user.id, statKey, value });
+      const newVal = await setStat({ userId: user.id, statKey, value, guildId });
       await recordAudit({
         guildId,
         actorId: interaction.user.id,

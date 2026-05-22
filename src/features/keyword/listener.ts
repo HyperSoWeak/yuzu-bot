@@ -3,8 +3,9 @@ import { logger } from '@/core/logger.js';
 import { getSettings } from '@/features/settings/service.js';
 import { bus } from '@/core/event-bus.js';
 import { matchTriggers } from './matcher.js';
-import { getTriggers, pickRandomReply } from './service.js';
+import { getCompiledTriggers, pickRandomReply } from './service.js';
 import { incrementStat } from './stats.js';
+import type { KeywordKind } from './types.js';
 
 const replyCooldown = new Map<string, number>();
 
@@ -18,12 +19,26 @@ function checkCooldown(channelId: string, key: string, seconds: number): boolean
   return true;
 }
 
-/**
- * Process a Discord message for keyword stats + replies.
- * - statsEnabled gates stat increments
- * - repliesEnabled gates bot replies (for both STAT and REPLY kinds)
- * Errors are caught and logged — never throws.
- */
+const STAT_VARS = new Set(['count', 'name', 'mention', 'username']);
+const REPLY_VARS = new Set(['name', 'mention', 'username']);
+
+function interpolate(
+  template: string,
+  vars: Record<string, string>,
+  kind: KeywordKind,
+): string | null {
+  const supported = kind === 'STAT' ? STAT_VARS : REPLY_VARS;
+  let hasUnknown = false;
+  const result = template.replace(/\{\{|\}\}|\{(\w+)\}/g, (match, key?: string) => {
+    if (match === '{{') return '{';
+    if (match === '}}') return '}';
+    if (key && supported.has(key)) return vars[key] ?? match;
+    hasUnknown = true;
+    return match;
+  });
+  return hasUnknown ? null : result;
+}
+
 export async function handleMessageForKeywords(message: Message): Promise<void> {
   try {
     if (message.author.bot) return;
@@ -39,24 +54,35 @@ export async function handleMessageForKeywords(message: Message): Promise<void> 
     const settings = await getSettings(message.guildId);
     if (!settings.keywordStatsEnabled && !settings.keywordRepliesEnabled) return;
 
-    const triggers = await getTriggers(message.guildId);
+    const triggers = getCompiledTriggers();
     if (triggers.length === 0) return;
 
     const matches = matchTriggers(message.content, triggers);
     if (matches.length === 0) return;
 
+    const displayName = message.member?.displayName ?? message.author.username;
+    const vars: Record<string, string> = {
+      name: displayName,
+      mention: `<@${message.author.id}>`,
+      username: message.author.username,
+    };
+
     for (const m of matches) {
-      // Stat increments
+      let count: number | undefined;
+
       if (m.kind === 'STAT' && settings.keywordStatsEnabled) {
-        await incrementStat({
-          guildId: message.guildId,
+        count = await incrementStat({
           userId: message.author.id,
           statKey: m.groupKey,
+          guildId: message.guildId,
           channelId: message.channelId,
-        }).catch((err) => logger.error({ err, m }, 'incrementStat failed'));
+        }).catch((err) => {
+          logger.error({ err, m }, 'incrementStat failed');
+          return undefined;
+        });
+        if (count === undefined) continue;
       }
 
-      // Bot replies (gated by keywordRepliesEnabled regardless of kind)
       if (!settings.keywordRepliesEnabled) continue;
       if (!message.channel.isSendable()) continue;
 
@@ -67,15 +93,21 @@ export async function handleMessageForKeywords(message: Message): Promise<void> 
       );
       if (!cdOk) continue;
 
-      const reply = await pickRandomReply({
-        guildId: message.guildId,
-        kind: m.kind,
-        groupKey: m.groupKey,
-      });
-      if (!reply) continue;
+      const template = pickRandomReply(m.kind, m.groupKey);
+      if (!template) continue;
+
+      const replyVars = count !== undefined ? { ...vars, count: String(count) } : vars;
+      const text = interpolate(template, replyVars, m.kind);
+      if (!text) {
+        logger.error(
+          { template, kind: m.kind, group: m.groupKey },
+          'reply template contains unknown variables',
+        );
+        continue;
+      }
 
       await message.channel
-        .send(reply)
+        .send(text)
         .catch((err) => logger.warn({ err, channelId: message.channelId }, 'reply send failed'));
     }
   } catch (err) {

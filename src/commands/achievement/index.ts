@@ -49,7 +49,7 @@ const achievementCommand: Command = {
 
     if (sub === 'user') {
       const target = interaction.options.getUser('user') ?? interaction.user;
-      const rows = await userAchievements(guildId, target.id);
+      const rows = await userAchievements(target.id);
       if (rows.length === 0) {
         await interaction.reply({
           content: `${target.tag} 尚未獲得任何成就。`,
@@ -75,7 +75,7 @@ const achievementCommand: Command = {
     }
 
     if (sub === 'top') {
-      const rows = await topUsersByAchievementCount(guildId, 10);
+      const rows = await topUsersByAchievementCount(10);
       if (rows.length === 0) {
         await interaction.reply({
           content: '_(尚無成就紀錄)_',

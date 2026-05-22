@@ -11,9 +11,18 @@ github_url = "https://github.com/HyperSoWeak/yuzu-bot"
 # Default per-user per-command cooldown in seconds; commands may override.
 default_cooldown_seconds = 3
 
-[keyword]
-# Hard cap on triggers loaded per guild (cache safety).
-max_triggers_per_guild = 1000
+# Keyword groups — triggers are case-insensitive regex patterns.
+# STAT groups increment a per-user counter; REPLY groups only send replies.
+# Template variables: {name} {mention} {username} and {count} (STAT only).
+# Use {{ and }} to write a literal brace.
+#
+# [[keyword.group]]
+# name = "breakdown"
+# kind = "STAT"
+# triggers = ["破防", "破大防", "破.{0,2}防"]
+# replies = [
+#   "破防警報！{name}，這是第 {count} 次了，你是不是太容易破防了？",
+# ]
 
 [achievement]
 # When true, announce new achievements to the configured guild channel.

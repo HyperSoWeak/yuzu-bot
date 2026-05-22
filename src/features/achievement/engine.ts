@@ -10,7 +10,6 @@ import type { AchievementRule } from './types.js';
 
 const config = loadConfig();
 
-/** Cache: ruleType → achievements (refresh on first use; small set, low churn). */
 const achievementsByRuleType = new Map<
   string,
   Awaited<ReturnType<typeof findAchievementsByRuleType>>
@@ -74,7 +73,6 @@ export function startAchievementEngine(client: Client): void {
         if (!ok) continue;
 
         const created = await awardAchievement({
-          guildId: payload.guildId,
           userId: payload.userId,
           achievementKey: a.key,
         }).catch((err) => {
@@ -83,19 +81,15 @@ export function startAchievementEngine(client: Client): void {
         });
         if (!created) continue;
 
-        logger.info(
-          { key: a.key, guildId: payload.guildId, userId: payload.userId },
-          'achievement awarded',
-        );
+        logger.info({ key: a.key, userId: payload.userId }, 'achievement awarded');
 
-        if (config.achievement.announce_enabled && settings.achievementAnnounceChannelId) {
-          void announce(client, settings.achievementAnnounceChannelId, payload.userId, a.name);
+        if (config.achievement.announce_enabled && payload.channelId) {
+          void announce(client, payload.channelId, payload.userId, a.name);
         }
       }
     }
   };
 
-  // Wire all events we have rules for.
   for (const ev of handlersByEvent.keys()) {
     bus.on(ev, (payload) => {
       const p = payload as DomainEvents[typeof ev] & { guildId?: string; userId?: string };

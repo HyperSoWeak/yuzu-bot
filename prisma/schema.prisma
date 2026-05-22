@@ -9,78 +9,30 @@ datasource db {
 }
 
 model GuildSettings {
-  guildId                      String   @id @map("guild_id")
-  keywordStatsEnabled          Boolean  @default(true) @map("keyword_stats_enabled")
-  keywordRepliesEnabled        Boolean  @default(true) @map("keyword_replies_enabled")
-  keywordReplyCooldownSeconds  Int      @default(10)   @map("keyword_reply_cooldown_seconds")
-  achievementsEnabled          Boolean  @default(true) @map("achievements_enabled")
-  achievementAnnounceChannelId String?  @map("achievement_announce_channel_id")
-  colorRoleEnabled             Boolean  @default(false) @map("color_role_enabled")
-  auditLogChannelId            String?  @map("audit_log_channel_id")
-  createdAt                    DateTime @default(now()) @map("created_at")
-  updatedAt                    DateTime @updatedAt @map("updated_at")
+  guildId                     String   @id @map("guild_id")
+  keywordStatsEnabled         Boolean  @default(true) @map("keyword_stats_enabled")
+  keywordRepliesEnabled       Boolean  @default(true) @map("keyword_replies_enabled")
+  keywordReplyCooldownSeconds Int      @default(10)   @map("keyword_reply_cooldown_seconds")
+  achievementsEnabled         Boolean  @default(true) @map("achievements_enabled")
+  colorRoleEnabled            Boolean  @default(false) @map("color_role_enabled")
+  auditLogChannelId           String?  @map("audit_log_channel_id")
+  createdAt                   DateTime @default(now()) @map("created_at")
+  updatedAt                   DateTime @updatedAt @map("updated_at")
 
   @@map("guild_settings")
 }
 
 model UserStat {
   id        String   @id @default(cuid())
-  guildId   String   @map("guild_id")
   userId    String   @map("user_id")
   statKey   String   @map("stat_key")
   value     Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([guildId, userId, statKey])
-  @@index([guildId, statKey, value(sort: Desc)])
+  @@unique([userId, statKey])
+  @@index([statKey, value(sort: Desc)])
   @@map("user_stats")
-}
-
-enum KeywordKind {
-  STAT
-  REPLY
-
-  @@map("keyword_kind")
-}
-
-enum MatchMode {
-  CONTAINS
-  EQUALS
-  REGEX
-
-  @@map("match_mode")
-}
-
-/// One trigger row per (guild, group, trigger). Many triggers can map to the same group.
-model KeywordTrigger {
-  id        String      @id @default(cuid())
-  guildId   String      @map("guild_id")
-  kind      KeywordKind
-  /// statKey when kind=STAT, replyKey when kind=REPLY
-  groupKey  String      @map("group_key")
-  trigger   String
-  matchMode MatchMode   @default(CONTAINS) @map("match_mode")
-  createdAt DateTime    @default(now()) @map("created_at")
-
-  @@unique([guildId, kind, groupKey, trigger])
-  @@index([guildId, kind])
-  @@map("keyword_triggers")
-}
-
-/// Random reply pool for a given (guild, replyKey or statKey group).
-/// For STAT groups this is the bot's reply when the stat increments.
-/// For REPLY groups this is the reply pool itself.
-model KeywordReply {
-  id        String      @id @default(cuid())
-  guildId   String      @map("guild_id")
-  kind      KeywordKind
-  groupKey  String      @map("group_key")
-  content   String
-  createdAt DateTime    @default(now()) @map("created_at")
-
-  @@index([guildId, kind, groupKey])
-  @@map("keyword_replies")
 }
 
 /// Static achievement definitions, seeded at boot.
@@ -99,15 +51,14 @@ model Achievement {
 
 model UserAchievement {
   id             String   @id @default(cuid())
-  guildId        String   @map("guild_id")
   userId         String   @map("user_id")
   achievementKey String   @map("achievement_key")
   earnedAt       DateTime @default(now()) @map("earned_at")
 
   achievement Achievement @relation(fields: [achievementKey], references: [key], onDelete: Cascade)
 
-  @@unique([guildId, userId, achievementKey])
-  @@index([guildId, achievementKey])
+  @@unique([userId, achievementKey])
+  @@index([achievementKey])
   @@map("user_achievements")
 }
 

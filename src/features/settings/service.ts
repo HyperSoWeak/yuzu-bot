@@ -10,7 +10,6 @@ export type SettingsPatch = Partial<
     | 'keywordRepliesEnabled'
     | 'keywordReplyCooldownSeconds'
     | 'achievementsEnabled'
-    | 'achievementAnnounceChannelId'
     | 'colorRoleEnabled'
     | 'auditLogChannelId'
   >

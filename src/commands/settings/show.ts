@@ -12,7 +12,6 @@ export async function executeShow(interaction: ChatInputCommandInteraction): Pro
 
   const s = await getSettings(guildId);
   const fmt = (v: boolean) => (v ? '✅ on' : '❌ off');
-  const ch = (id: string | null) => (id ? `<#${id}>` : '_(未設定)_');
 
   const embed = new EmbedBuilder()
     .setTitle('Guild 設定')
@@ -26,13 +25,12 @@ export async function executeShow(interaction: ChatInputCommandInteraction): Pro
         inline: true,
       },
       { name: '成就系統', value: fmt(s.achievementsEnabled), inline: true },
-      {
-        name: '成就公告頻道',
-        value: ch(s.achievementAnnounceChannelId),
-        inline: true,
-      },
       { name: 'Color role', value: fmt(s.colorRoleEnabled), inline: true },
-      { name: 'Audit log 頻道', value: ch(s.auditLogChannelId), inline: false },
+      {
+        name: 'Audit log 頻道',
+        value: s.auditLogChannelId ? `<#${s.auditLogChannelId}>` : '_(未設定)_',
+        inline: false,
+      },
     )
     .setFooter({ text: `updated ${s.updatedAt.toISOString()}` });
 

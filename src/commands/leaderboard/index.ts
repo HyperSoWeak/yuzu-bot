@@ -27,13 +27,12 @@ const leaderboardCommand: Command = {
   category: 'leaderboard',
   data,
   async execute({ interaction }) {
-    const guildId = interaction.guildId;
-    if (!guildId) throw new CommandError('此指令僅限在伺服器內使用。');
+    if (!interaction.guildId) throw new CommandError('此指令僅限在伺服器內使用。');
 
     const statKey = interaction.options.getString('stat', true);
     const limit = interaction.options.getInteger('limit') ?? 10;
 
-    const rows = await topStats({ guildId, statKey, limit });
+    const rows = await topStats({ statKey, limit });
     if (rows.length === 0) {
       await interaction.reply({
         content: `\`${statKey}\` 尚無紀錄。`,
@@ -50,13 +49,10 @@ const leaderboardCommand: Command = {
   },
 };
 
-/** Autocomplete handler: suggest known stat keys for this guild. */
 export async function leaderboardAutocomplete(
-  guildId: string,
   query: string,
 ): Promise<{ name: string; value: string }[]> {
   const rows = await prisma.userStat.findMany({
-    where: { guildId },
     select: { statKey: true },
     distinct: ['statKey'],
     orderBy: { statKey: 'asc' },

@@ -7,7 +7,7 @@ describe('loadConfig', () => {
     const cfg = loadConfig(resolve(process.cwd(), 'config/config.example.toml'));
     expect(cfg.bot.name).toBe('Yuzu');
     expect(cfg.command.default_cooldown_seconds).toBeGreaterThanOrEqual(0);
-    expect(cfg.keyword.max_triggers_per_guild).toBeGreaterThan(0);
+    expect(Array.isArray(cfg.keyword.group)).toBe(true);
     expect(cfg.color_role.role_name_prefix).toBe('color:');
   });
 });

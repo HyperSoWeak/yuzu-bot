@@ -11,9 +11,20 @@ const ConfigSchema = z.object({
   command: z.object({
     default_cooldown_seconds: z.number().int().nonnegative().default(3),
   }),
-  keyword: z.object({
-    max_triggers_per_guild: z.number().int().positive().default(1000),
-  }),
+  keyword: z
+    .object({
+      group: z
+        .array(
+          z.object({
+            name: z.string().min(1),
+            kind: z.enum(['STAT', 'REPLY']),
+            triggers: z.array(z.string().min(1)).min(1),
+            replies: z.array(z.string().min(1)).default([]),
+          }),
+        )
+        .default([]),
+    })
+    .default({}),
   achievement: z.object({
     announce_enabled: z.boolean().default(true),
   }),
