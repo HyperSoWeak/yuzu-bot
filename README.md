@@ -1,6 +1,8 @@
 # Yuzu Discord Bot
 
-An extensible, long-term-maintainable Discord bot.
+[![CI](https://github.com/HyperSoWeak/yuzu-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/HyperSoWeak/yuzu-bot/actions/workflows/ci.yml)
+
+A Discord bot for community servers — tracks keyword stats, awards achievements, manages color roles and reaction roles, and logs admin actions. Run `/help` in Discord for a full command reference.
 
 ## Tech stack
 
@@ -12,21 +14,38 @@ An extensible, long-term-maintainable Discord bot.
 - Docker Compose (bot + postgres + backup sidecar)
 - GitHub Actions CI + release-please
 
+## Prerequisites
+
+- Node 22+, pnpm, Docker
+- A Discord application with a bot token ([Discord Developer Portal](https://discord.com/developers/applications))
+- Required gateway intents (enable in Developer Portal → Bot): **Server Members**, **Message Content**
+
 ## Local development
 
 ```bash
 pnpm install
-cp .env.example .env                       # fill DISCORD_TOKEN / CLIENT_ID / OWNER_IDS
+cp .env.example .env
 cp config/config.example.toml config/config.toml
-
-# Start a local Postgres (postgres service only)
-docker compose up -d postgres
-
-pnpm prisma:migrate:dev                    # apply schema
-pnpm dev                                   # tsx watch
 ```
 
-Set `DISCORD_DEV_GUILD_ID` to register slash commands to a single guild for instant updates (global registration can take up to 1 hour to propagate).
+Required `.env` fields:
+
+| Variable            | Description                     |
+| ------------------- | ------------------------------- |
+| `DISCORD_TOKEN`     | Bot token from Developer Portal |
+| `DISCORD_CLIENT_ID` | Application ID                  |
+| `DISCORD_OWNER_IDS` | Comma-separated owner user IDs  |
+| `DATABASE_URL`      | Postgres connection string      |
+
+Optional: set `DISCORD_DEV_GUILD_ID` to register slash commands to one guild for instant updates (omit for global registration, which can take up to 1 hour).
+
+```bash
+docker compose up -d postgres   # start local Postgres
+pnpm prisma:migrate:dev         # apply schema
+pnpm dev                        # tsx watch — bot logs to stdout
+```
+
+The bot prints `Logged in as Yuzu#XXXX` when ready. Slash commands are deployed automatically on startup.
 
 ## Deployment
 
@@ -34,30 +53,18 @@ Set `DISCORD_DEV_GUILD_ID` to register slash commands to a single guild for inst
 docker compose up -d --build
 ```
 
-- The bot container runs `prisma migrate deploy` then `pnpm start` on boot.
-- Postgres backup: daily at 03:00 UTC, `pg_dump` to `./backups/yuzu-YYYYMMDD-HHMMSS.sql.gz`, 7-day retention, older files pruned automatically.
+On start the bot container runs `prisma migrate deploy` then `pnpm start`. No manual migration step needed.
 
-## Commands
-
-| Category              | Commands                                                                                                                                                 |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Info                  | `/ping` `/botinfo` `/guildinfo` `/userinfo` `/help` `/changelog`                                                                                         |
-| Settings (admin)      | `/settings show \| keyword-stats \| keyword-replies \| keyword-reply-cooldown \| achievements \| achievement-channel \| color-role \| audit-log-channel` |
-| Keyword (admin)       | `/keyword trigger {add,remove,list}` `/keyword reply {add,remove,list}` `/keyword groups`                                                                |
-| Achievement           | `/achievement list \| user \| top`                                                                                                                       |
-| Leaderboard           | `/leaderboard <stat>`                                                                                                                                    |
-| Reaction role (admin) | `/reaction-role create-button-menu \| add-reaction \| add-button \| remove-mapping \| delete \| list`                                                    |
-| Color role            | `/color set \| show \| clear`                                                                                                                            |
-| Owner only            | `/owner ping \| health \| say \| set-stat`                                                                                                               |
+Postgres backup: daily `pg_dump` at 03:00 UTC → `./backups/yuzu-YYYYMMDD-HHMMSS.sql.gz`, 7-day retention.
 
 ## Dev scripts
 
 ```bash
-pnpm lint            # ESLint
-pnpm format          # Prettier write
-pnpm typecheck       # tsc --noEmit
-pnpm build           # tsc -p tsconfig.build.json
-pnpm test            # vitest run
+pnpm lint
+pnpm format
+pnpm typecheck
+pnpm build
+pnpm test
 pnpm prisma:migrate:dev
 ```
 
@@ -69,28 +76,25 @@ src/
 ├── core/
 │   ├── command/    # registry, dispatcher, cooldown, errors
 │   ├── event-bus.ts
-│   ├── logger.ts (pino)
+│   ├── logger.ts
 │   └── audit-log.ts
-├── features/
-│   ├── settings/
-│   ├── keyword/    # service, matcher, stats, listener
-│   ├── achievement/ # engine + rules/*.ts (one file per rule type)
-│   ├── reaction-role/
-│   └── color-role/
-├── commands/       # grouped by category
+├── features/       # one directory per domain (settings, keyword, achievement, …)
+├── commands/       # slash commands grouped by category; each file exports a Command
 └── db/             # prisma client
 ```
 
-Extension points:
-
-- **New command**: export a `Command` from `src/commands/<category>/*.ts` and add it to that category's `index.ts` array.
-- **New achievement rule type**: implement `AchievementRule` in `src/features/achievement/rules/<type>.ts` and call `registerRule()`.
-- **New achievement**: add an entry to `src/features/achievement/definitions.ts`.
-- **New stat type**: admins just run `/keyword trigger add kind:stat group:<name> ...`.
-- **New guild setting**: add the column in `prisma/schema.prisma` → migration → extend `SettingsPatch` in the service → add a `/settings` subcommand.
+Features are isolated by domain under `src/features/`; commands under `src/commands/` are thin handlers that call into feature services.
 
 ## Release
 
-Uses [release-please](https://github.com/googleapis/release-please). When commits land on `main`, the action opens a release PR; merging that PR cuts a tag, creates a GitHub Release, and updates `CHANGELOG.md`.
+Uses [release-please](https://github.com/googleapis/release-please). Commits to `main` trigger the action; it opens a release PR. Merging that PR cuts a tag, creates a GitHub Release, and updates `CHANGELOG.md`. Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/).
 
-Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/).
+After a release tag is cut, deploy by pulling the latest code and rebuilding:
+
+```bash
+git pull && docker compose up -d --build
+```
+
+## License
+
+MIT
