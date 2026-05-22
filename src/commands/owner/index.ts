@@ -15,8 +15,23 @@ import { CommandError } from '@/core/command/errors.js';
 import { recordAudit } from '@/core/audit-log.js';
 import { logger } from '@/core/logger.js';
 import { prisma } from '@/db/client.js';
+import { loadConfig } from '@/config/config.js';
 import { setStat, incrementStat } from '@/features/keyword/stats.js';
 import { scanForKeywords } from '@/features/keyword/backfill.js';
+
+function statGroupNames(): string[] {
+  return loadConfig()
+    .keyword.group.filter((g) => g.kind === 'STAT')
+    .map((g) => g.name);
+}
+
+export function ownerSetStatAutocomplete(query: string): { name: string; value: string }[] {
+  const q = query.toLowerCase();
+  return statGroupNames()
+    .filter((k) => (q ? k.toLowerCase().includes(q) : true))
+    .slice(0, 25)
+    .map((k) => ({ name: k, value: k }));
+}
 
 const data = new SlashCommandBuilder()
   .setName('owner')
@@ -42,7 +57,9 @@ const data = new SlashCommandBuilder()
       .setName('set-stat')
       .setDescription('手動設定使用者統計值')
       .addUserOption((o) => o.setName('user').setDescription('目標使用者').setRequired(true))
-      .addStringOption((o) => o.setName('stat').setDescription('stat key').setRequired(true))
+      .addStringOption((o) =>
+        o.setName('stat').setDescription('stat key').setRequired(true).setAutocomplete(true),
+      )
       .addIntegerOption((o) =>
         o.setName('value').setDescription('新值').setRequired(true).setMinValue(0),
       ),
@@ -140,6 +157,11 @@ const ownerCommand: Command = {
       const user = interaction.options.getUser('user', true);
       const statKey = interaction.options.getString('stat', true);
       const value = interaction.options.getInteger('value', true);
+      const validKeys = statGroupNames();
+      if (!validKeys.includes(statKey))
+        throw new CommandError(
+          `無效的 stat key：\`${statKey}\`。\n有效值：${validKeys.map((k) => `\`${k}\``).join('、') || '（尚未設定任何 STAT group）'}`,
+        );
       const newVal = await setStat({ userId: user.id, statKey, value, guildId });
       await recordAudit({
         guildId,

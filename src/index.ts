@@ -9,6 +9,7 @@ import { dispatchInteraction } from '@/core/command/dispatcher.js';
 import { deployCommands } from '@/core/command/deploy.js';
 import { allCommands } from '@/commands/index.js';
 import { leaderboardAutocomplete } from '@/commands/leaderboard/index.js';
+import { ownerSetStatAutocomplete } from '@/commands/owner/index.js';
 import { handleMessageForKeywords } from '@/features/keyword/listener.js';
 import { getCompiledTriggers } from '@/features/keyword/service.js';
 import { seedAchievements } from '@/features/achievement/service.js';
@@ -65,6 +66,14 @@ async function main() {
         if (focused.name === 'stat') {
           void leaderboardAutocomplete(focused.value)
             .then((choices) => interaction.respond(choices))
+            .catch((err) => logger.warn({ err }, 'autocomplete failed'));
+        }
+      }
+      if (interaction.commandName === 'owner') {
+        const focused = interaction.options.getFocused(true);
+        if (focused.name === 'stat') {
+          void interaction
+            .respond(ownerSetStatAutocomplete(focused.value))
             .catch((err) => logger.warn({ err }, 'autocomplete failed'));
         }
       }
