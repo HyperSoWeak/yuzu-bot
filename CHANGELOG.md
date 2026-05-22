@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.1.1...v1.2.0) (2026-05-22)
+
+
+### Features
+
+* **backfill:** add until option to limit scan end time ([a150109](https://github.com/HyperSoWeak/yuzu-bot/commit/a150109e2e9d64b6271b705f8f4399f29665b92f))
+* **leaderboard,achievement:** make ranking replies public ([16d07b4](https://github.com/HyperSoWeak/yuzu-bot/commit/16d07b4b891a87960bc6aca5ec00c2b676c8cff5))
+
+
+### Bug Fixes
+
+* **owner:** validate set-stat key against config STAT groups ([6caf013](https://github.com/HyperSoWeak/yuzu-bot/commit/6caf013d141081064029998a69932df983a04d41))
+
 ## [1.1.1](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.1.0...v1.1.1) (2026-05-22)
 
 
