@@ -33,7 +33,7 @@ DISCORD_CLIENT_ID=<application id>
 
 > **Do not set `DATABASE_URL`** — Docker Compose assembles it from `POSTGRES_*` and injects it automatically.
 
-Edit `config/config.toml` if needed (non-secret settings; defaults are reasonable).
+Edit `config/config.toml` if needed (non-secret settings; defaults are reasonable). Changes take effect after `docker compose restart bot` — no rebuild needed.
 
 Then start:
 
