@@ -81,6 +81,9 @@ const data = new SlashCommandBuilder()
           .setMinValue(1)
           .setMaxValue(720)
           .setRequired(false),
+      )
+      .addStringOption((o) =>
+        o.setName('until').setDescription('結束時間 (ISO 8601，不填則掃到現在)').setRequired(false),
       ),
   );
 
@@ -197,6 +200,7 @@ async function handleBackfill(interaction: ChatInputCommandInteraction): Promise
 
   const sinceStr = interaction.options.getString('since');
   const hours = interaction.options.getInteger('hours');
+  const untilStr = interaction.options.getString('until');
 
   if (!sinceStr && !hours) throw new CommandError('請提供 `since` 或 `hours` 其中一個參數。');
 
@@ -212,7 +216,19 @@ async function handleBackfill(interaction: ChatInputCommandInteraction): Promise
     sinceMs = Date.now() - hours! * 60 * 60 * 1000;
   }
 
+  let untilMs: number | undefined;
+  if (untilStr) {
+    untilMs = new Date(untilStr).getTime();
+    if (Number.isNaN(untilMs))
+      throw new CommandError(
+        '`until` 格式無效，請使用 ISO 8601（例：`2026-04-01T00:00:00+08:00`）。',
+      );
+    if (untilMs >= Date.now()) throw new CommandError('`until` 不能是未來時間。');
+    if (untilMs <= sinceMs) throw new CommandError('`until` 必須晚於 `since`。');
+  }
+
   const sinceDisplay = formatDate(sinceMs);
+  const untilDisplay = untilMs ? formatDate(untilMs) : '現在';
   const id = interaction.id;
 
   const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -224,7 +240,7 @@ async function handleBackfill(interaction: ChatInputCommandInteraction): Promise
   );
 
   await interaction.reply({
-    content: `準備掃描所有可讀頻道，從 **${sinceDisplay}** 開始。確認開始掃描？`,
+    content: `準備掃描所有可讀頻道，從 **${sinceDisplay}** 到 **${untilDisplay}**。確認開始掃描？`,
     components: [confirmRow],
   });
 
@@ -249,7 +265,7 @@ async function handleBackfill(interaction: ChatInputCommandInteraction): Promise
 
   let result;
   try {
-    result = await scanForKeywords(guild, sinceMs);
+    result = await scanForKeywords(guild, sinceMs, untilMs);
   } catch (err) {
     logger.error({ err }, 'backfill scan failed');
     await interaction.editReply({ content: '掃描時發生錯誤，請查看 log。' });
@@ -262,7 +278,7 @@ async function handleBackfill(interaction: ChatInputCommandInteraction): Promise
 
   if (result.entries.length === 0) {
     await interaction.editReply({
-      content: `**掃描結果** — 從 ${sinceDisplay}\n${scanSummary}\n\n沒有找到任何 keyword 命中。`,
+      content: `**掃描結果** — ${sinceDisplay} → ${untilDisplay}\n${scanSummary}\n\n沒有找到任何 keyword 命中。`,
     });
     return;
   }
@@ -276,7 +292,7 @@ async function handleBackfill(interaction: ChatInputCommandInteraction): Promise
     arr.push({ userId: e.userId, delta: e.delta });
   }
 
-  const lines: string[] = [`**掃描結果** — 從 ${sinceDisplay}`, scanSummary, ''];
+  const lines: string[] = [`**掃描結果** — ${sinceDisplay} → ${untilDisplay}`, scanSummary, ''];
   for (const [groupKey, entries] of byGroup) {
     lines.push(`**${groupKey}**`);
     for (const e of entries.sort((a, b) => b.delta - a.delta)) {

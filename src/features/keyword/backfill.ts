@@ -22,7 +22,11 @@ export interface BackfillResult {
   scannedMessages: number;
 }
 
-export async function scanForKeywords(guild: Guild, sinceMs: number): Promise<BackfillResult> {
+export async function scanForKeywords(
+  guild: Guild,
+  sinceMs: number,
+  untilMs?: number,
+): Promise<BackfillResult> {
   const triggers = getCompiledTriggers().filter((t) => t.kind === 'STAT');
   const afterSnowflake = timestampToSnowflake(sinceMs);
 
@@ -67,6 +71,7 @@ export async function scanForKeywords(guild: Guild, sinceMs: number): Promise<Ba
 
       for (const [, message] of batch) {
         if (message.author.bot) continue;
+        if (untilMs !== undefined && message.createdTimestamp > untilMs) continue;
         scannedMessages++;
 
         const matches = matchTriggers(message.content, triggers);
@@ -80,6 +85,12 @@ export async function scanForKeywords(guild: Guild, sinceMs: number): Promise<Ba
       if (batch.size < 100) break;
 
       const maxId = [...batch.keys()].reduce((a, b) => (BigInt(a) > BigInt(b) ? a : b));
+
+      if (untilMs !== undefined) {
+        const maxMsgMs = Number((BigInt(maxId) >> 22n) + DISCORD_EPOCH);
+        if (maxMsgMs > untilMs) break;
+      }
+
       cursor = maxId;
     }
   }
