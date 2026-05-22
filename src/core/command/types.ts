@@ -14,6 +14,7 @@ export const COMMAND_CATEGORIES = [
   'leaderboard',
   'reaction-role',
   'color-role',
+  'mine',
   'owner',
 ] as const;
 
