@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.0.1...v1.1.0) (2026-05-22)
+
+
+### Features
+
+* **keyword:** add /owner backfill to recover missed keyword stats ([a37db86](https://github.com/HyperSoWeak/yuzu-bot/commit/a37db866a7b4dcc04927fe5eb866296fbc21feda))
+* **keyword:** make triggers and stats global; config-driven triggers ([8df08e9](https://github.com/HyperSoWeak/yuzu-bot/commit/8df08e952b11e49a8cd1fd70978c4f82e1ccf623))
+
 ## [1.0.1](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.0.0...v1.0.1) (2026-05-20)
 
 
