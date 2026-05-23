@@ -35,7 +35,7 @@ announce_enabled = true
 # [[achievement.definition]]
 # key = "breakdown_count_1"
 # name = "破防 1"
-# description = "累積說過 1 次破防關鍵字。"
+# description = "累積破防 1 次。"
 # rule_type = "stat_threshold"
 # rule_config = { stat_key = "breakdown", threshold = 1 }
 
