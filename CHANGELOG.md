@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.5.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.4.0...v1.5.0) (2026-05-23)
+
+
+### Features
+
+* **botinfo:** show bot version from package.json ([60ad4f4](https://github.com/HyperSoWeak/yuzu-bot/commit/60ad4f41f3180faac4916f580557429e8438c6d7))
+* **mine:** add expert 16×16 difficulty ([3ce9ad1](https://github.com/HyperSoWeak/yuzu-bot/commit/3ce9ad1da5423d9e3bb1d54b4c51b732c3cbd7eb))
+* **mine:** add renderBoardImage with dark Discord theme ([7414051](https://github.com/HyperSoWeak/yuzu-bot/commit/74140510ebdf0fdaa64b87e9652364c0774a96bc))
+* **mine:** add renderStatusText for image+status separation ([abdb51c](https://github.com/HyperSoWeak/yuzu-bot/commit/abdb51c335feb078b123154b7531469dbbad82ca))
+* **mine:** chord open on revealed number cells ([d88eb45](https://github.com/HyperSoWeak/yuzu-bot/commit/d88eb45f402715d8ab5219a7ff4d53439ea381e1))
+* **mine:** use image board output with text fallback ([f691e7b](https://github.com/HyperSoWeak/yuzu-bot/commit/f691e7bb63be0042cc300a8dcb996506e6072e9f))
+
+
+### Bug Fixes
+
+* **mine-display:** remove irregular whitespace characters ([37b1912](https://github.com/HyperSoWeak/yuzu-bot/commit/37b19122df470c200dd6de197bb18a9f38ef5e23))
+* **mine:** extend COL_EMOJIS and ROW_LABELS to support 16-col expert board ([df8def8](https://github.com/HyperSoWeak/yuzu-bot/commit/df8def8f4d3dfb1526ef003f90f4d395ce4ed710))
+* **mine:** load system fonts and use FreeMono for board image rendering ([8077cc1](https://github.com/HyperSoWeak/yuzu-bot/commit/8077cc171272d3686886ab309a0b413cbae4abd3))
+* **mine:** prevent column headers from combining into flag emoji ([1a2c4da](https://github.com/HyperSoWeak/yuzu-bot/commit/1a2c4da03cb572a051bbad62c2498c4c9f2cf8c5))
+* **mine:** use unicode escapes in renderStatusText to avoid irregular whitespace lint errors ([a243790](https://github.com/HyperSoWeak/yuzu-bot/commit/a243790eca05ccdfcf73c4805a77837e715b955c))
+
 ## [1.4.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.3.0...v1.4.0) (2026-05-23)
 
 
