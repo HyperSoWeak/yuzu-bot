@@ -26,3 +26,4 @@ docs/superpowers/plans/
 
 prisma/*.db
 prisma/*.db-journal
+.superpowers/
