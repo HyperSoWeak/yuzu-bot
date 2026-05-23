@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderBoard } from '../src/features/mine/display.js';
+import { renderBoard, renderStatusText } from '../src/features/mine/display.js';
 import { createGame } from '../src/features/mine/game.js';
 import type { MineGame } from '../src/features/mine/types.js';
 
@@ -75,5 +75,57 @@ describe('renderBoard', () => {
     const out = renderBoard(game);
     expect(out).toContain('💀');
     expect(out.split('💀').length - 1).toBe(1);
+  });
+});
+
+describe('renderStatusText', () => {
+  it('contains title and difficulty', () => {
+    const game = createGame('g', 'medium');
+    const out = renderStatusText(game);
+    expect(out).toContain('合作踩地雷');
+    expect(out).toContain('Medium');
+  });
+
+  it('does not contain board grid emoji', () => {
+    const game = createGame('g', 'medium');
+    const out = renderStatusText(game);
+    expect(out).not.toContain('🟦');
+  });
+
+  it('contains opened count and flag count', () => {
+    const game = createGame('g', 'medium');
+    game.safeOpened = 7;
+    const out = renderStatusText(game);
+    expect(out).toContain('7');
+    expect(out).toContain('🚩');
+  });
+
+  it('contains last action when set', () => {
+    const game = createGame('g', 'easy');
+    game.lastActionDesc = '**Tester** 開了 A1';
+    const out = renderStatusText(game);
+    expect(out).toContain('Tester');
+  });
+
+  it('contains timeout reminder while playing', () => {
+    const game = createGame('g', 'easy');
+    const out = renderStatusText(game);
+    expect(out).toContain('24');
+  });
+
+  it('contains win message on won', () => {
+    const game: MineGame = { ...createGame('g', 'easy'), status: 'won' };
+    const out = renderStatusText(game);
+    expect(out).toContain('勝利');
+  });
+
+  it('contains player stats on game over', () => {
+    const game: MineGame = {
+      ...createGame('g', 'easy'),
+      status: 'won',
+      playerRecords: { 'u1': { moves: 3, flagsPlaced: 1, hitMine: false } },
+    };
+    const out = renderStatusText(game);
+    expect(out).toContain('<@u1>');
   });
 });

@@ -76,3 +76,38 @@ export function renderBoard(game: MineGame): string {
 
   return lines.join('\n');
 }
+
+export function renderStatusText(game: MineGame): string {
+  const { cells, status, safeOpened, totalSafe, playerRecords, lastActionDesc, difficulty } = game;
+  const { mines: mineCount } = DIFFICULTIES[difficulty];
+
+  const lines: string[] = [];
+
+  lines.push(`💣 **合作踩地雷** ｜ ${DIFF_LABELS[difficulty]} ｜ 地雷：${mineCount}`);
+
+  const flagCount = cells.filter((c) => c === 'flagged').length;
+  lines.push(`✅ 已開：${safeOpened}／${totalSafe}　🚩 旗子：${flagCount}`);
+
+  if (lastActionDesc) {
+    lines.push(`👣 上一步：${lastActionDesc}`);
+  }
+
+  if (status === 'playing') {
+    lines.push('⏳ 24 小時無操作自動結束');
+    return lines.join('\n');
+  }
+
+  lines.push('');
+  lines.push(status === 'won' ? '🎉 **全員勝利！清掉所有格子！**' : '💥 **遊戲結束！**');
+
+  if (Object.keys(playerRecords).length > 0) {
+    lines.push('');
+    lines.push('📊 **本局統計：**');
+    for (const [userId, record] of Object.entries(playerRecords)) {
+      const tag = record.hitMine ? '　（💀 終結者）' : '';
+      lines.push(`<@${userId}>　${record.moves} 步　${record.flagsPlaced} 旗${tag}`);
+    }
+  }
+
+  return lines.join('\n');
+}
