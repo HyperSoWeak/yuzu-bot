@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.3.0...v1.4.0) (2026-05-23)
+
+
+### Features
+
+* **achievement:** add fix-achievements owner command ([5c08d25](https://github.com/HyperSoWeak/yuzu-bot/commit/5c08d25a6ed6da7c234b473e0fd56e935649bb9e))
+
+
+### Bug Fixes
+
+* **achievement:** check achievementsEnabled before fix-achievements ([e00ae65](https://github.com/HyperSoWeak/yuzu-bot/commit/e00ae6536a93d05608a98c3942bb2d407eb5e4af))
+
 ## [1.3.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.2.0...v1.3.0) (2026-05-23)
 
 
