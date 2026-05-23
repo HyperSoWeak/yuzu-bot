@@ -10,6 +10,7 @@ const CATEGORY_LABELS: Record<CommandCategory, string> = {
   leaderboard: '排行榜',
   'reaction-role': 'Reaction Role',
   'color-role': 'Color Role',
+  mine: '小遊戲',
   owner: 'Owner Only',
 };
 
