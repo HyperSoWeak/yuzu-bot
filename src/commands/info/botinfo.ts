@@ -1,6 +1,10 @@
+import { createRequire } from 'node:module';
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder, version as djsVersion } from 'discord.js';
 import { loadConfig } from '@/config/config.js';
 import type { Command } from '@/core/command/types.js';
+
+const require = createRequire(import.meta.url);
+const { version: botVersion } = require('../../../package.json') as { version: string };
 
 const config = loadConfig();
 
@@ -25,6 +29,7 @@ const command: Command = {
         { name: 'User', value: `${client.user?.tag ?? '?'}`, inline: true },
         { name: 'Guilds', value: `${client.guilds.cache.size}`, inline: true },
         { name: 'Uptime', value: fmtUptime(process.uptime()), inline: true },
+        { name: 'Version', value: `v${botVersion}`, inline: true },
         { name: 'Node', value: process.version, inline: true },
         { name: 'discord.js', value: djsVersion, inline: true },
         { name: 'GitHub', value: config.bot.github_url },
