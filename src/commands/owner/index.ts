@@ -18,7 +18,11 @@ import { prisma } from '@/db/client.js';
 import { loadConfig } from '@/config/config.js';
 import { setStat, incrementStat } from '@/features/keyword/stats.js';
 import { scanForKeywords } from '@/features/keyword/backfill.js';
-import { previewFixAchievements, applyFixAchievements, type FixEntry } from '@/features/achievement/service.js';
+import {
+  previewFixAchievements,
+  applyFixAchievements,
+  type FixEntry,
+} from '@/features/achievement/service.js';
 import { getSettings } from '@/features/settings/service.js';
 
 function statGroupNames(): string[] {
@@ -241,7 +245,9 @@ async function handleFixAchievements(interaction: ChatInputCommandInteraction): 
 
   await interaction.editReply({ content: display, components: [row] });
 
-  const btn = await (await interaction.fetchReply())
+  const btn = await (
+    await interaction.fetchReply()
+  )
     .awaitMessageComponent({
       filter: (i) => i.user.id === interaction.user.id,
       componentType: ComponentType.Button,
@@ -252,14 +258,17 @@ async function handleFixAchievements(interaction: ChatInputCommandInteraction): 
   if (!btn || btn.customId === `fa-no-${id}`) {
     const suffix = btn ? '已取消。' : '已逾時，操作取消。';
     if (btn) await btn.update({ content: suffix, components: [] });
-    else await interaction.editReply({ content: `${display}\n\n已逾時，操作取消。`, components: [] });
+    else
+      await interaction.editReply({ content: `${display}\n\n已逾時，操作取消。`, components: [] });
     return;
   }
 
   await btn.update({ content: `${display}\n\n套用中...`, components: [] });
 
   const awarded = await applyFixAchievements(entries);
-  await interaction.editReply({ content: `${display}\n\n✅ 補發完成，共新增 **${awarded}** 筆成就紀錄。` });
+  await interaction.editReply({
+    content: `${display}\n\n✅ 補發完成，共新增 **${awarded}** 筆成就紀錄。`,
+  });
 }
 
 function formatDate(ms: number): string {

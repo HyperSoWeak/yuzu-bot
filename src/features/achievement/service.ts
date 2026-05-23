@@ -61,7 +61,10 @@ export async function previewFixAchievements(): Promise<FixEntry[]> {
 export async function applyFixAchievements(entries: FixEntry[]): Promise<number> {
   let awarded = 0;
   for (const entry of entries) {
-    const created = await awardAchievement({ userId: entry.userId, achievementKey: entry.achievementKey }).catch(() => null);
+    const created = await awardAchievement({
+      userId: entry.userId,
+      achievementKey: entry.achievementKey,
+    }).catch(() => null);
     if (created) awarded++;
   }
   return awarded;

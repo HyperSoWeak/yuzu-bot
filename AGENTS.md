@@ -72,7 +72,7 @@ When adding new event handlers / listeners, follow the same pattern: try/catch a
 ## Where things go
 
 - **New achievement rule type**: `src/features/achievement/rules/<type>.ts`, calls `registerRule()`. Side-effect import from `rules/index.ts`.
-- **New achievement instance**: append to `src/features/achievement/definitions.ts`; seeded on boot via `seedAchievements()`.
+- **New achievement instance**: add an `[[achievement.definition]]` entry to `config/config.toml` (and `config/config.example.toml` as a commented example). Definitions are loaded from config at startup — there is no DB table or seed step.
 - **New stat type**: no code change — admins run `/keyword trigger add kind:stat group:<name> ...`.
 - **New guild setting**:
   1. Add column in `prisma/schema.prisma`
