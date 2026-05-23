@@ -18,6 +18,7 @@ import { prisma } from '@/db/client.js';
 import { loadConfig } from '@/config/config.js';
 import { setStat, incrementStat } from '@/features/keyword/stats.js';
 import { scanForKeywords } from '@/features/keyword/backfill.js';
+import { fixAchievements } from '@/features/achievement/service.js';
 
 function statGroupNames(): string[] {
   return loadConfig()
@@ -63,6 +64,9 @@ const data = new SlashCommandBuilder()
       .addIntegerOption((o) =>
         o.setName('value').setDescription('新值').setRequired(true).setMinValue(0),
       ),
+  )
+  .addSubcommand((s) =>
+    s.setName('fix-achievements').setDescription('根據目前 stat 補發缺少的成就'),
   )
   .addSubcommand((s) =>
     s
@@ -178,6 +182,13 @@ const ownerCommand: Command = {
         content: `✅ <@${user.id}> · \`${statKey}\` = ${newVal}`,
         flags: MessageFlags.Ephemeral,
       });
+      return;
+    }
+
+    if (sub === 'fix-achievements') {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      const { awarded } = await fixAchievements();
+      await interaction.editReply({ content: `✅ 補發完成，共新增 **${awarded}** 筆成就紀錄。` });
       return;
     }
 

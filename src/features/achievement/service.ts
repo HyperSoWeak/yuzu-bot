@@ -1,5 +1,6 @@
 import type { UserAchievement } from '@prisma/client';
 import { prisma } from '@/db/client.js';
+import { getAchievementDefinitions } from './definitions.js';
 
 export async function userAchievements(userId: string): Promise<UserAchievement[]> {
   return prisma.userAchievement.findMany({
@@ -18,6 +19,28 @@ export async function awardAchievement(input: {
     if ((err as { code?: string }).code === 'P2002') return null;
     throw err;
   }
+}
+
+export async function fixAchievements(): Promise<{ awarded: number }> {
+  const defs = getAchievementDefinitions();
+  let awarded = 0;
+
+  for (const def of defs) {
+    if (def.ruleType !== 'stat_threshold') continue;
+    const cfg = def.ruleConfig as { stat_key: string; threshold: number };
+
+    const qualifying = await prisma.userStat.findMany({
+      where: { statKey: cfg.stat_key, value: { gte: cfg.threshold } },
+      select: { userId: true },
+    });
+
+    for (const { userId } of qualifying) {
+      const created = await awardAchievement({ userId, achievementKey: def.key }).catch(() => null);
+      if (created) awarded++;
+    }
+  }
+
+  return { awarded };
 }
 
 export async function topUsersByAchievementCount(
