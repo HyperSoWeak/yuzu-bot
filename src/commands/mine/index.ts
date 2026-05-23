@@ -1,10 +1,30 @@
 import { SlashCommandBuilder } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import type { Command } from '@/core/command/types.js';
+import type { Logger } from '@/core/logger.js';
 import { CommandError } from '@/core/command/errors.js';
 import { createGame, openCell, parseCell, toggleFlag } from '@/features/mine/game.js';
 import { getGame, removeGame, resetTimeout, setGame } from '@/features/mine/store.js';
-import { renderBoard } from '@/features/mine/display.js';
-import type { Difficulty } from '@/features/mine/types.js';
+import { renderBoard, renderStatusText } from '@/features/mine/display.js';
+import { renderBoardImage } from '@/features/mine/render.js';
+import type { Difficulty, MineGame } from '@/features/mine/types.js';
+
+async function replyWithBoard(
+  interaction: ChatInputCommandInteraction,
+  game: MineGame,
+  logger: Logger,
+): Promise<void> {
+  try {
+    const buf = await renderBoardImage(game);
+    await interaction.reply({
+      content: renderStatusText(game),
+      files: [{ attachment: buf, name: 'board.png' }],
+    });
+  } catch (err) {
+    logger.warn({ err }, 'image render failed, falling back to text');
+    await interaction.reply({ content: renderBoard(game) });
+  }
+}
 
 const data = new SlashCommandBuilder()
   .setName('mine')
@@ -19,9 +39,10 @@ const data = new SlashCommandBuilder()
           .setName('difficulty')
           .setDescription('難度（預設 medium）')
           .addChoices(
-            { name: 'Easy  8×8  10 地雷', value: 'easy' },
+            { name: 'Easy  8×8  10 地雷',   value: 'easy'   },
             { name: 'Medium  10×10  20 地雷', value: 'medium' },
-            { name: 'Hard  12×12  30 地雷', value: 'hard' },
+            { name: 'Hard  12×12  30 地雷',  value: 'hard'   },
+            { name: 'Expert  16×16  51 地雷', value: 'expert' },
           ),
       ),
   )
@@ -57,7 +78,7 @@ const mineCommand: Command = {
       const game = createGame(guildId, difficulty);
       setGame(guildId, game);
       logger.info({ guildId, difficulty }, 'mine game started');
-      await interaction.reply({ content: renderBoard(game) });
+      await replyWithBoard(interaction, game, logger);
       return;
     }
 
@@ -65,7 +86,7 @@ const mineCommand: Command = {
     if (!game) throw new CommandError('目前沒有進行中的遊戲，請使用 `/mine start` 開始。');
 
     if (sub === 'board') {
-      await interaction.reply({ content: renderBoard(game) });
+      await replyWithBoard(interaction, game, logger);
       return;
     }
 
@@ -86,7 +107,7 @@ const mineCommand: Command = {
         { guildId, userId: interaction.user.id, cell: cellLabel, outcome: result.outcome },
         'mine open',
       );
-      await interaction.reply({ content: renderBoard(game) });
+      await replyWithBoard(interaction, game, logger);
       return;
     }
 
@@ -98,7 +119,7 @@ const mineCommand: Command = {
           : `**${displayName}** 移除 ${cellLabel} 的旗子`;
       resetTimeout(guildId);
       logger.info({ guildId, userId: interaction.user.id, cell: cellLabel, result }, 'mine flag');
-      await interaction.reply({ content: renderBoard(game) });
+      await replyWithBoard(interaction, game, logger);
     }
   },
 };
