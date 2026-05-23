@@ -12,7 +12,6 @@ import { leaderboardAutocomplete } from '@/commands/leaderboard/index.js';
 import { ownerSetStatAutocomplete } from '@/commands/owner/index.js';
 import { handleMessageForKeywords } from '@/features/keyword/listener.js';
 import { getCompiledTriggers } from '@/features/keyword/service.js';
-import { seedAchievements } from '@/features/achievement/service.js';
 import { startAchievementEngine } from '@/features/achievement/engine.js';
 import { registerReactionRoleListeners } from '@/features/reaction-role/listeners.js';
 
@@ -24,8 +23,6 @@ async function main() {
 
   await prisma.$connect();
   logger.info('postgres connected');
-
-  await seedAchievements();
 
   const triggers = getCompiledTriggers();
   logger.info({ count: triggers.length }, 'keyword triggers compiled');

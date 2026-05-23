@@ -28,6 +28,17 @@ default_cooldown_seconds = 3
 # When true, announce new achievements to the configured guild channel.
 announce_enabled = true
 
+# Achievement definitions — loaded at startup; no DB table required.
+# rule_type "stat_threshold": fires when a user's stat reaches the given threshold.
+#   rule_config: { stat_key = "<stat name>", threshold = <integer> }
+#
+# [[achievement.definition]]
+# key = "breakdown_count_1"
+# name = "破防 1"
+# description = "累積說過 1 次破防關鍵字。"
+# rule_type = "stat_threshold"
+# rule_config = { stat_key = "breakdown", threshold = 1 }
+
 [color_role]
 # Prefix for role names Yuzu manages (helps humans identify them).
 role_name_prefix = "color:"

@@ -1,15 +1,11 @@
-import type { Achievement, Prisma } from '@prisma/client';
 import type { DomainEvents } from '@/core/event-bus.js';
 
-export type { Achievement };
-
-/** Definition shipped in code; upserted into DB at boot. */
 export interface AchievementDefinition {
   key: string;
   name: string;
   description: string;
   ruleType: string;
-  ruleConfig: Prisma.InputJsonValue;
+  ruleConfig: Record<string, unknown>;
 }
 
 /**
@@ -20,7 +16,7 @@ export interface AchievementRule {
   type: string;
   events: ReadonlyArray<keyof DomainEvents>;
   evaluate(
-    achievement: Achievement,
+    achievement: AchievementDefinition,
     eventName: keyof DomainEvents,
     payload: DomainEvents[keyof DomainEvents],
   ): boolean | Promise<boolean>;

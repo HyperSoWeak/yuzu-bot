@@ -35,27 +35,11 @@ model UserStat {
   @@map("user_stats")
 }
 
-/// Static achievement definitions, seeded at boot.
-model Achievement {
-  key         String   @id
-  name        String
-  description String
-  ruleType    String   @map("rule_type")
-  ruleConfig  Json     @map("rule_config")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  userAchievements UserAchievement[]
-
-  @@map("achievements")
-}
-
 model UserAchievement {
   id             String   @id @default(cuid())
   userId         String   @map("user_id")
   achievementKey String   @map("achievement_key")
   earnedAt       DateTime @default(now()) @map("earned_at")
-
-  achievement Achievement @relation(fields: [achievementKey], references: [key], onDelete: Cascade)
 
   @@unique([userId, achievementKey])
   @@index([achievementKey])

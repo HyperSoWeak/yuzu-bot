@@ -1,38 +1,9 @@
-import type { Achievement, UserAchievement } from '@prisma/client';
+import type { UserAchievement } from '@prisma/client';
 import { prisma } from '@/db/client.js';
-import { logger } from '@/core/logger.js';
-import { achievementDefinitions } from './definitions.js';
 
-export async function seedAchievements(): Promise<void> {
-  for (const def of achievementDefinitions) {
-    await prisma.achievement.upsert({
-      where: { key: def.key },
-      create: def,
-      update: {
-        name: def.name,
-        description: def.description,
-        ruleType: def.ruleType,
-        ruleConfig: def.ruleConfig,
-      },
-    });
-  }
-  logger.info({ count: achievementDefinitions.length }, 'achievements seeded');
-}
-
-export async function listAchievements(): Promise<Achievement[]> {
-  return prisma.achievement.findMany({ orderBy: { key: 'asc' } });
-}
-
-export async function findAchievementsByRuleType(ruleType: string): Promise<Achievement[]> {
-  return prisma.achievement.findMany({ where: { ruleType } });
-}
-
-export async function userAchievements(
-  userId: string,
-): Promise<(UserAchievement & { achievement: Achievement })[]> {
+export async function userAchievements(userId: string): Promise<UserAchievement[]> {
   return prisma.userAchievement.findMany({
     where: { userId },
-    include: { achievement: true },
     orderBy: { earnedAt: 'asc' },
   });
 }

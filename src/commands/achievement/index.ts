@@ -1,11 +1,8 @@
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { Command } from '@/core/command/types.js';
 import { CommandError } from '@/core/command/errors.js';
-import {
-  listAchievements,
-  topUsersByAchievementCount,
-  userAchievements,
-} from '@/features/achievement/service.js';
+import { getAchievementDefinitions } from '@/features/achievement/definitions.js';
+import { topUsersByAchievementCount, userAchievements } from '@/features/achievement/service.js';
 
 function truncateField(s: string): string {
   return s.length <= 1024 ? s : s.slice(0, 1020) + '…';
@@ -34,7 +31,7 @@ const achievementCommand: Command = {
     const sub = interaction.options.getSubcommand(true);
 
     if (sub === 'list') {
-      const items = await listAchievements();
+      const items = getAchievementDefinitions();
       if (items.length === 0) {
         await interaction.reply({ content: '_(尚未定義任何成就)_', flags: MessageFlags.Ephemeral });
         return;
@@ -54,16 +51,17 @@ const achievementCommand: Command = {
         });
         return;
       }
+      const defMap = new Map(getAchievementDefinitions().map((d) => [d.key, d]));
       const embed = new EmbedBuilder()
         .setTitle(`${target.tag} 的成就 (${rows.length})`)
         .setColor(0xffcc66)
         .setDescription(
           truncateField(
             rows
-              .map(
-                (r) =>
-                  `🏆 **${r.achievement.name}** · <t:${Math.floor(r.earnedAt.getTime() / 1000)}:R>`,
-              )
+              .map((r) => {
+                const name = defMap.get(r.achievementKey)?.name ?? r.achievementKey;
+                return `🏆 **${name}** · <t:${Math.floor(r.earnedAt.getTime() / 1000)}:R>`;
+              })
               .join('\n'),
           ),
         );

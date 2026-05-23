@@ -5,27 +5,11 @@ import { bus, type DomainEvents } from '@/core/event-bus.js';
 import { getSettings } from '@/features/settings/service.js';
 import './rules/index.js';
 import { allRules } from './rules/registry.js';
-import { awardAchievement, findAchievementsByRuleType } from './service.js';
-import type { AchievementRule } from './types.js';
+import { awardAchievement } from './service.js';
+import { getAchievementDefinitions } from './definitions.js';
+import type { AchievementDefinition, AchievementRule } from './types.js';
 
 const config = loadConfig();
-
-const achievementsByRuleType = new Map<
-  string,
-  Awaited<ReturnType<typeof findAchievementsByRuleType>>
->();
-
-async function loadForRule(ruleType: string) {
-  const hit = achievementsByRuleType.get(ruleType);
-  if (hit) return hit;
-  const rows = await findAchievementsByRuleType(ruleType);
-  achievementsByRuleType.set(ruleType, rows);
-  return rows;
-}
-
-export function invalidateAchievementCache(): void {
-  achievementsByRuleType.clear();
-}
 
 async function announce(
   client: Client,
@@ -52,6 +36,13 @@ export function startAchievementEngine(client: Client): void {
     }
   }
 
+  const definitionsByRuleType = new Map<string, AchievementDefinition[]>();
+  for (const def of getAchievementDefinitions()) {
+    const list = definitionsByRuleType.get(def.ruleType) ?? [];
+    list.push(def);
+    definitionsByRuleType.set(def.ruleType, list);
+  }
+
   const handle = async <K extends keyof DomainEvents>(
     eventName: K,
     payload: DomainEvents[K] & { guildId: string; userId: string },
@@ -61,7 +52,7 @@ export function startAchievementEngine(client: Client): void {
 
     const matchingRules = handlersByEvent.get(eventName) ?? [];
     for (const rule of matchingRules) {
-      const achievements = await loadForRule(rule.type);
+      const achievements = definitionsByRuleType.get(rule.type) ?? [];
       for (const a of achievements) {
         let ok: boolean;
         try {

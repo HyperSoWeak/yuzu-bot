@@ -27,6 +27,17 @@ const ConfigSchema = z.object({
     .default({}),
   achievement: z.object({
     announce_enabled: z.boolean().default(true),
+    definition: z
+      .array(
+        z.object({
+          key: z.string().min(1),
+          name: z.string().min(1),
+          description: z.string().min(1),
+          rule_type: z.string().min(1),
+          rule_config: z.record(z.unknown()).default({}),
+        }),
+      )
+      .default([]),
   }),
   color_role: z.object({
     role_name_prefix: z.string().default('color:'),

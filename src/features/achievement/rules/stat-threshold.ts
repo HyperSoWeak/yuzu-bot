@@ -4,7 +4,7 @@ import type { AchievementRule } from '../types.js';
 import { registerRule } from './registry.js';
 
 const ConfigSchema = z.object({
-  statKey: z.string().min(1),
+  stat_key: z.string().min(1),
   threshold: z.number().int().positive(),
 });
 
@@ -26,7 +26,7 @@ export const statThresholdRule: AchievementRule = {
       return false;
     }
     const evt = payload as { statKey: string; value: number };
-    return evt.statKey === parsed.data.statKey && evt.value >= parsed.data.threshold;
+    return evt.statKey === parsed.data.stat_key && evt.value >= parsed.data.threshold;
   },
 };
 
