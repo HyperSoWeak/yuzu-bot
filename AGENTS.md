@@ -39,15 +39,17 @@ Release tooling is [release-please](https://github.com/googleapis/release-please
 
 ## Before every commit
 
+Run all five commands in order — CI runs the exact same checks and will fail if you skip any:
+
 ```bash
-pnpm format        # writes Prettier fixes
+pnpm format        # rewrites files in-place; must be run before committing or CI format check fails
 pnpm lint
 pnpm typecheck
 pnpm build
 pnpm test
 ```
 
-CI runs the same checks. Don't push if any of these fail locally.
+`pnpm format` is a write step, not just a check — stage its changes before committing.
 
 ## Code style
 
