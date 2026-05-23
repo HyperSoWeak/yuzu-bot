@@ -21,9 +21,15 @@ export async function awardAchievement(input: {
   }
 }
 
-export async function fixAchievements(): Promise<{ awarded: number }> {
+export interface FixEntry {
+  userId: string;
+  achievementKey: string;
+  achievementName: string;
+}
+
+export async function previewFixAchievements(): Promise<FixEntry[]> {
   const defs = getAchievementDefinitions();
-  let awarded = 0;
+  const entries: FixEntry[] = [];
 
   for (const def of defs) {
     if (def.ruleType !== 'stat_threshold') continue;
@@ -33,14 +39,32 @@ export async function fixAchievements(): Promise<{ awarded: number }> {
       where: { statKey: cfg.stat_key, value: { gte: cfg.threshold } },
       select: { userId: true },
     });
+    if (qualifying.length === 0) continue;
+
+    const qualifyingIds = qualifying.map((r) => r.userId);
+    const existing = await prisma.userAchievement.findMany({
+      where: { achievementKey: def.key, userId: { in: qualifyingIds } },
+      select: { userId: true },
+    });
+    const existingIds = new Set(existing.map((r) => r.userId));
 
     for (const { userId } of qualifying) {
-      const created = await awardAchievement({ userId, achievementKey: def.key }).catch(() => null);
-      if (created) awarded++;
+      if (!existingIds.has(userId)) {
+        entries.push({ userId, achievementKey: def.key, achievementName: def.name });
+      }
     }
   }
 
-  return { awarded };
+  return entries;
+}
+
+export async function applyFixAchievements(entries: FixEntry[]): Promise<number> {
+  let awarded = 0;
+  for (const entry of entries) {
+    const created = await awardAchievement({ userId: entry.userId, achievementKey: entry.achievementKey }).catch(() => null);
+    if (created) awarded++;
+  }
+  return awarded;
 }
 
 export async function topUsersByAchievementCount(

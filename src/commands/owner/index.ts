@@ -18,7 +18,7 @@ import { prisma } from '@/db/client.js';
 import { loadConfig } from '@/config/config.js';
 import { setStat, incrementStat } from '@/features/keyword/stats.js';
 import { scanForKeywords } from '@/features/keyword/backfill.js';
-import { fixAchievements } from '@/features/achievement/service.js';
+import { previewFixAchievements, applyFixAchievements, type FixEntry } from '@/features/achievement/service.js';
 import { getSettings } from '@/features/settings/service.js';
 
 function statGroupNames(): string[] {
@@ -187,13 +187,7 @@ const ownerCommand: Command = {
     }
 
     if (sub === 'fix-achievements') {
-      const guildId = interaction.guildId;
-      if (!guildId) throw new CommandError('此指令僅限在伺服器內使用。');
-      const settings = await getSettings(guildId);
-      if (!settings.achievementsEnabled) throw new CommandError('此伺服器的成就系統已停用。');
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      const { awarded } = await fixAchievements();
-      await interaction.editReply({ content: `✅ 補發完成，共新增 **${awarded}** 筆成就紀錄。` });
+      await handleFixAchievements(interaction);
       return;
     }
 
@@ -205,6 +199,68 @@ const ownerCommand: Command = {
     throw new CommandError('未支援的子指令。');
   },
 };
+
+async function handleFixAchievements(interaction: ChatInputCommandInteraction): Promise<void> {
+  const guildId = interaction.guildId;
+  if (!guildId) throw new CommandError('此指令僅限在伺服器內使用。');
+  const settings = await getSettings(guildId);
+  if (!settings.achievementsEnabled) throw new CommandError('此伺服器的成就系統已停用。');
+
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const entries = await previewFixAchievements();
+
+  if (entries.length === 0) {
+    await interaction.editReply({ content: '所有成就均已是最新狀態，無需補發。' });
+    return;
+  }
+
+  const byKey = new Map<string, FixEntry[]>();
+  for (const e of entries) {
+    const list = byKey.get(e.achievementKey) ?? [];
+    list.push(e);
+    byKey.set(e.achievementKey, list);
+  }
+
+  const lines: string[] = [];
+  for (const [, list] of byKey) {
+    lines.push(`**${list[0]!.achievementName}** — ${list.length} 人`);
+    lines.push(list.map((e) => `<@${e.userId}>`).join(' '));
+  }
+  lines.push('');
+  lines.push(`共 **${entries.length}** 筆成就待補發，確認套用？`);
+
+  const body = lines.join('\n');
+  const display = body.length > 1900 ? body.slice(0, 1900) + '\n... (結果過長)' : body;
+
+  const id = interaction.id;
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder().setCustomId(`fa-ok-${id}`).setLabel('套用').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(`fa-no-${id}`).setLabel('取消').setStyle(ButtonStyle.Secondary),
+  );
+
+  await interaction.editReply({ content: display, components: [row] });
+
+  const btn = await (await interaction.fetchReply())
+    .awaitMessageComponent({
+      filter: (i) => i.user.id === interaction.user.id,
+      componentType: ComponentType.Button,
+      time: 120_000,
+    })
+    .catch(() => null);
+
+  if (!btn || btn.customId === `fa-no-${id}`) {
+    const suffix = btn ? '已取消。' : '已逾時，操作取消。';
+    if (btn) await btn.update({ content: suffix, components: [] });
+    else await interaction.editReply({ content: `${display}\n\n已逾時，操作取消。`, components: [] });
+    return;
+  }
+
+  await btn.update({ content: `${display}\n\n套用中...`, components: [] });
+
+  const awarded = await applyFixAchievements(entries);
+  await interaction.editReply({ content: `${display}\n\n✅ 補發完成，共新增 **${awarded}** 筆成就紀錄。` });
+}
 
 function formatDate(ms: number): string {
   return new Date(ms).toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
