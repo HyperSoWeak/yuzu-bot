@@ -36,7 +36,7 @@ export function renderBoard(game: MineGame): string {
 
   lines.push(`💣 **合作踩地雷** ｜ ${DIFF_LABELS[difficulty]} ｜ 地雷：${mineCount}`);
   lines.push('');
-  lines.push('\u3000' + COL_EMOJIS.slice(0, cols).join(''));
+  lines.push('\u3000' + COL_EMOJIS.slice(0, cols).join('\u200c'));
 
   for (let r = 0; r < rows; r++) {
     const label = ROW_LABELS[r] ?? `${r + 1}`;
