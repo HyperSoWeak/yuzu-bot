@@ -22,5 +22,7 @@ logs/
 
 backups/
 
+docs/superpowers/plans/
+
 prisma/*.db
 prisma/*.db-journal
