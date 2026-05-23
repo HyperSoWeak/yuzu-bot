@@ -103,7 +103,7 @@ export function renderStatusText(game: MineGame): string {
   lines.push(`💣 **合作踩地雷** ｜ ${DIFF_LABELS[difficulty]} ｜ 地雷：${mineCount}`);
 
   const flagCount = cells.filter((c) => c === 'flagged').length;
-  lines.push(`✅ 已開：${safeOpened}／${totalSafe} 🚩 旗子：${flagCount}`);
+  lines.push(`✅ 已開：${safeOpened}／${totalSafe}\u3000🚩 旗子：${flagCount}`);
 
   if (lastActionDesc) {
     lines.push(`👣 上一步：${lastActionDesc}`);
@@ -121,8 +121,8 @@ export function renderStatusText(game: MineGame): string {
     lines.push('');
     lines.push('📊 **本局統計：**');
     for (const [userId, record] of Object.entries(playerRecords)) {
-      const tag = record.hitMine ? ' (💀 終結者)' : '';
-      lines.push(`<@${userId}> ${record.moves} 步 ${record.flagsPlaced} 旗${tag}`);
+      const tag = record.hitMine ? '\u3000（💀 終結者）' : '';
+      lines.push(`<@${userId}>\u3000${record.moves} 步\u3000${record.flagsPlaced} 旗${tag}`);
     }
   }
 
