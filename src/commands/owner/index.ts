@@ -19,6 +19,7 @@ import { loadConfig } from '@/config/config.js';
 import { setStat, incrementStat } from '@/features/keyword/stats.js';
 import { scanForKeywords } from '@/features/keyword/backfill.js';
 import { fixAchievements } from '@/features/achievement/service.js';
+import { getSettings } from '@/features/settings/service.js';
 
 function statGroupNames(): string[] {
   return loadConfig()
@@ -186,6 +187,10 @@ const ownerCommand: Command = {
     }
 
     if (sub === 'fix-achievements') {
+      const guildId = interaction.guildId;
+      if (!guildId) throw new CommandError('此指令僅限在伺服器內使用。');
+      const settings = await getSettings(guildId);
+      if (!settings.achievementsEnabled) throw new CommandError('此伺服器的成就系統已停用。');
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       const { awarded } = await fixAchievements();
       await interaction.editReply({ content: `✅ 補發完成，共新增 **${awarded}** 筆成就紀錄。` });
