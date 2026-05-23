@@ -94,7 +94,10 @@ export function openCell(game: MineGame, index: number, userId: string): OpenRes
   validateMove(game, userId);
 
   const cell = game.cells[index];
-  if (typeof cell === 'number' || cell === 'mine' || cell === 'mine-hit') {
+  if (typeof cell === 'number') {
+    return chordCell(game, index, userId);
+  }
+  if (cell === 'mine' || cell === 'mine-hit') {
     throw new CommandError('這個格子已經打開了。');
   }
   if (cell === 'flagged') {
@@ -128,6 +131,71 @@ export function openCell(game: MineGame, index: number, userId: string): OpenRes
 
   const before = game.safeOpened;
   floodFill(game, index);
+  const opened = game.safeOpened - before;
+
+  if (game.safeOpened >= game.totalSafe) {
+    game.status = 'won';
+  }
+
+  return { outcome: 'safe', opened };
+}
+
+type ChordResult = { outcome: 'mine' } | { outcome: 'safe'; opened: number };
+
+function chordCell(game: MineGame, index: number, userId: string): ChordResult {
+  validateMove(game, userId);
+
+  const cell = game.cells[index];
+  if (typeof cell !== 'number') {
+    throw new CommandError('只能對已翻開的數字格執行和弦展開。');
+  }
+
+  const r = Math.floor(index / game.cols);
+  const c = index % game.cols;
+  const neighbors: number[] = [];
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr >= 0 && nr < game.rows && nc >= 0 && nc < game.cols) {
+        neighbors.push(nr * game.cols + nc);
+      }
+    }
+  }
+
+  const flaggedCount = neighbors.filter((ni) => game.cells[ni] === 'flagged').length;
+  if (flaggedCount !== cell) {
+    throw new CommandError(`周圍插旗數（${flaggedCount}）與數字（${cell}）不符，無法展開。`);
+  }
+
+  ensureRecord(game, userId);
+  const record = game.playerRecords[userId]!;
+  record.moves++;
+  game.lastPlayerId = userId;
+  game.lastActionAt = Date.now();
+
+  const hiddenNeighbors = neighbors.filter((ni) => game.cells[ni] === 'hidden');
+  const mineHits = hiddenNeighbors.filter((ni) => game.mines.has(ni));
+
+  if (mineHits.length > 0) {
+    for (const mi of mineHits) {
+      game.cells[mi] = 'mine-hit';
+    }
+    record.hitMine = true;
+    for (const mi of game.mines) {
+      if (game.cells[mi] === 'hidden') {
+        game.cells[mi] = 'mine';
+      }
+    }
+    game.status = 'lost';
+    return { outcome: 'mine' };
+  }
+
+  const before = game.safeOpened;
+  for (const ni of hiddenNeighbors) {
+    floodFill(game, ni);
+  }
   const opened = game.safeOpened - before;
 
   if (game.safeOpened >= game.totalSafe) {

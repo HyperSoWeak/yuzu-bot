@@ -184,6 +184,99 @@ describe('openCell', () => {
   });
 });
 
+describe('chord (via openCell on an open number)', () => {
+  function makeChordGame() {
+    const game = createGame('g', 'easy');
+    game.minesPlaced = true;
+    game.mines = new Set([10]);
+    game.adjacency = new Array(64).fill(0);
+    // index 10 is r=1,c=2; its neighbors get adjacency 1
+    for (const ni of [1, 2, 3, 9, 11, 17, 18, 19]) {
+      game.adjacency[ni] = 1;
+    }
+    // Open cell 18 (r=2,c=2) as a number cell with value 1
+    game.cells[18] = 1;
+    game.safeOpened = 1;
+    game.lastPlayerId = 'user-b';
+    return game;
+  }
+
+  it('throws if flagged count does not match the number', () => {
+    const game = makeChordGame();
+    // cell 18 = 1, no flags around it
+    expect(() => openCell(game, 18, 'user-a')).toThrow(CommandError);
+  });
+
+  it('opens hidden neighbors when flags match', () => {
+    const game = makeChordGame();
+    // Flag the mine at 10
+    game.cells[10] = 'flagged';
+    const result = openCell(game, 18, 'user-a');
+    expect(result.outcome).toBe('safe');
+    if (result.outcome !== 'safe') return;
+    // Neighbors of 18 (r=2,c=2): 9,10,11,17,19,25,26,27
+    // 10 is flagged; 9,11,17,19 have adj=1 (open as number); 25,26,27 have adj=0 (flood)
+    expect(game.cells[9]).toBe(1);
+    expect(game.cells[11]).toBe(1);
+    expect(game.cells[17]).toBe(1);
+    expect(game.cells[19]).toBe(1);
+    expect(typeof game.cells[25]).toBe('number');
+    expect(result.opened).toBeGreaterThan(0);
+  });
+
+  it('explodes when a flag is misplaced', () => {
+    const game = makeChordGame();
+    // Flag index 9 instead of 10 (wrong cell)
+    game.cells[9] = 'flagged';
+    const result = openCell(game, 18, 'user-a');
+    expect(result.outcome).toBe('mine');
+    expect(game.status).toBe('lost');
+    expect(game.cells[10]).toBe('mine-hit');
+    expect(game.playerRecords['user-a']!.hitMine).toBe(true);
+  });
+
+  it('reveals all remaining hidden mines on explosion', () => {
+    const game = makeChordGame();
+    game.mines = new Set([10, 63]);
+    game.cells[9] = 'flagged'; // wrong flag
+    openCell(game, 18, 'user-a');
+    expect(game.cells[63]).toBe('mine');
+  });
+
+  it('sets status to won when all safe cells are opened', () => {
+    const game = makeChordGame();
+    game.cells[10] = 'flagged';
+    // Mark all safe cells as already opened except the neighbors of 18
+    game.totalSafe = 63;
+    game.safeOpened = 63 - 7; // 7 hidden safe neighbors of 18 remain
+    const result = openCell(game, 18, 'user-a');
+    expect(result.outcome).toBe('safe');
+    expect(game.status).toBe('won');
+  });
+
+  it('throws if game is over', () => {
+    const game = makeChordGame();
+    game.status = 'lost';
+    game.cells[10] = 'flagged';
+    expect(() => openCell(game, 18, 'user-a')).toThrow(CommandError);
+  });
+
+  it('throws if same player acts twice in a row', () => {
+    const game = makeChordGame();
+    game.cells[10] = 'flagged';
+    game.lastPlayerId = 'user-a';
+    expect(() => openCell(game, 18, 'user-a')).toThrow(CommandError);
+  });
+
+  it('counts as one move and updates lastPlayerId', () => {
+    const game = makeChordGame();
+    game.cells[10] = 'flagged';
+    openCell(game, 18, 'user-a');
+    expect(game.playerRecords['user-a']!.moves).toBe(1);
+    expect(game.lastPlayerId).toBe('user-a');
+  });
+});
+
 describe('toggleFlag', () => {
   it('flags a hidden cell and returns flagged', () => {
     const game = createGame('g', 'easy');

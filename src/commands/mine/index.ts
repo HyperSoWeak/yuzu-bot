@@ -50,7 +50,7 @@ const data = new SlashCommandBuilder()
   .addSubcommand((s) =>
     s
       .setName('open')
-      .setDescription('打開一格')
+      .setDescription('打開一格；對已翻開的數字格執行則進行和弦展開')
       .addStringOption((o) => o.setName('cell').setDescription('座標，例如 B4').setRequired(true)),
   )
   .addSubcommand((s) =>
@@ -96,15 +96,21 @@ const mineCommand: Command = {
     const cellLabel = cellInput.toUpperCase();
 
     if (sub === 'open') {
+      const isChord = typeof game.cells[index] === 'number';
       const result = openCell(game, index, interaction.user.id);
-      game.lastActionDesc =
-        result.outcome === 'mine'
-          ? `**${displayName}** 在 ${cellLabel} 踩到地雷`
+      if (result.outcome === 'mine') {
+        game.lastActionDesc = isChord
+          ? `**${displayName}** 對 ${cellLabel} 和弦展開，踩到地雷！`
+          : `**${displayName}** 在 ${cellLabel} 踩到地雷`;
+      } else {
+        game.lastActionDesc = isChord
+          ? `**${displayName}** 對 ${cellLabel} 和弦展開（+${result.opened} 格）`
           : `**${displayName}** 開了 ${cellLabel}（展開 ${result.opened} 格）`;
+      }
       resetTimeout(guildId);
       if (game.status !== 'playing') removeGame(guildId);
       logger.info(
-        { guildId, userId: interaction.user.id, cell: cellLabel, outcome: result.outcome },
+        { guildId, userId: interaction.user.id, cell: cellLabel, outcome: result.outcome, isChord },
         'mine open',
       );
       await replyWithBoard(interaction, game, logger);
