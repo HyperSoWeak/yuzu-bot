@@ -1,6 +1,8 @@
-import { createCanvas } from '@napi-rs/canvas';
+import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
 import type { SKRSContext2D } from '@napi-rs/canvas';
 import type { MineGame } from './types.js';
+
+(GlobalFonts as unknown as { loadSystemFonts(): void }).loadSystemFonts();
 
 const CELL = 40;
 const GAP = 2;
@@ -101,7 +103,7 @@ export async function renderBoardImage(game: MineGame): Promise<Buffer> {
   const gridY = PAD + LABEL_H + GAP;
 
   ctx.fillStyle = LABEL_COLOR;
-  ctx.font = 'bold 15px monospace';
+  ctx.font = 'bold 15px FreeMono';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (let c = 0; c < cols; c++) {
@@ -150,11 +152,11 @@ export async function renderBoardImage(game: MineGame): Promise<Buffer> {
         ctx.fill();
         if (cell > 0) {
           ctx.fillStyle = NUM_COLORS[cell] ?? '#ffffff';
-          ctx.font = 'bold 22px monospace';
+          ctx.font = 'bold 22px FreeMono';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(String(cell), cx, cy);
-          ctx.font = 'bold 15px monospace';
+          ctx.font = 'bold 15px FreeMono';
         }
       }
     }

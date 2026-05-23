@@ -18,7 +18,7 @@ RUN pnpm build
 
 FROM base AS runtime
 ENV NODE_ENV=production
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl ttf-freefont
 COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
