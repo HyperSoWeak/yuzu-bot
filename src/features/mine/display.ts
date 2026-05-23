@@ -8,6 +8,7 @@ const DIFF_LABELS: Record<string, string> = {
   easy: 'Easy 8×8',
   medium: 'Medium 10×10',
   hard: 'Hard 12×12',
+  expert: 'Expert 16×16',
 };
 
 function cellEmoji(value: CellValue): string {

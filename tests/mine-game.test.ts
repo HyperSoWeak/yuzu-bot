@@ -54,6 +54,14 @@ describe('createGame', () => {
     expect(game.totalSafe).toBe(54); // 64 - 10 mines
     expect(game.lastPlayerId).toBeNull();
   });
+
+  it('creates an expert game with correct dimensions', () => {
+    const game = createGame('g', 'expert');
+    expect(game.cols).toBe(16);
+    expect(game.rows).toBe(16);
+    expect(game.totalSafe).toBe(256 - 51);
+    expect(game.cells).toHaveLength(256);
+  });
 });
 
 describe('openCell', () => {
