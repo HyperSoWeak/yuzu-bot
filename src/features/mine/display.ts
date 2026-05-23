@@ -1,7 +1,24 @@
 import { DIFFICULTIES, type CellValue, type MineGame } from './types.js';
 
 const COL_EMOJIS = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵'];
-const ROW_LABELS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '⑪', '⑫', '⑬', '⑭', '⑮', '⑯'];
+const ROW_LABELS = [
+  '1️⃣',
+  '2️⃣',
+  '3️⃣',
+  '4️⃣',
+  '5️⃣',
+  '6️⃣',
+  '7️⃣',
+  '8️⃣',
+  '9️⃣',
+  '🔟',
+  '⑪',
+  '⑫',
+  '⑬',
+  '⑭',
+  '⑮',
+  '⑯',
+];
 const NUM_EMOJIS = ['⬜', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣'];
 
 const DIFF_LABELS: Record<string, string> = {
@@ -86,7 +103,7 @@ export function renderStatusText(game: MineGame): string {
   lines.push(`💣 **合作踩地雷** ｜ ${DIFF_LABELS[difficulty]} ｜ 地雷：${mineCount}`);
 
   const flagCount = cells.filter((c) => c === 'flagged').length;
-  lines.push(`✅ 已開：${safeOpened}／${totalSafe}　🚩 旗子：${flagCount}`);
+  lines.push(`✅ 已開：${safeOpened}／${totalSafe} 🚩 旗子：${flagCount}`);
 
   if (lastActionDesc) {
     lines.push(`👣 上一步：${lastActionDesc}`);
@@ -104,8 +121,8 @@ export function renderStatusText(game: MineGame): string {
     lines.push('');
     lines.push('📊 **本局統計：**');
     for (const [userId, record] of Object.entries(playerRecords)) {
-      const tag = record.hitMine ? '　（💀 終結者）' : '';
-      lines.push(`<@${userId}>　${record.moves} 步　${record.flagsPlaced} 旗${tag}`);
+      const tag = record.hitMine ? ' (💀 終結者)' : '';
+      lines.push(`<@${userId}> ${record.moves} 步 ${record.flagsPlaced} 旗${tag}`);
     }
   }
 

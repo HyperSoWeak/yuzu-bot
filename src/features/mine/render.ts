@@ -114,11 +114,7 @@ export async function renderBoardImage(game: MineGame): Promise<Buffer> {
 
   ctx.textAlign = 'right';
   for (let r = 0; r < rows; r++) {
-    ctx.fillText(
-      String(r + 1),
-      PAD + LABEL_W - 5,
-      gridY + r * (CELL + GAP) + CELL / 2,
-    );
+    ctx.fillText(String(r + 1), PAD + LABEL_W - 5, gridY + r * (CELL + GAP) + CELL / 2);
   }
 
   for (let r = 0; r < rows; r++) {

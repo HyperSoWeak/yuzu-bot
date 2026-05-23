@@ -123,7 +123,7 @@ describe('renderStatusText', () => {
     const game: MineGame = {
       ...createGame('g', 'easy'),
       status: 'won',
-      playerRecords: { 'u1': { moves: 3, flagsPlaced: 1, hitMine: false } },
+      playerRecords: { u1: { moves: 3, flagsPlaced: 1, hitMine: false } },
     };
     const out = renderStatusText(game);
     expect(out).toContain('<@u1>');

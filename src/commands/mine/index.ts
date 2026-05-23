@@ -39,9 +39,9 @@ const data = new SlashCommandBuilder()
           .setName('difficulty')
           .setDescription('難度（預設 medium）')
           .addChoices(
-            { name: 'Easy  8×8  10 地雷',   value: 'easy'   },
+            { name: 'Easy  8×8  10 地雷', value: 'easy' },
             { name: 'Medium  10×10  20 地雷', value: 'medium' },
-            { name: 'Hard  12×12  30 地雷',  value: 'hard'   },
+            { name: 'Hard  12×12  30 地雷', value: 'hard' },
             { name: 'Expert  16×16  51 地雷', value: 'expert' },
           ),
       ),
