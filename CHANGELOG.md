@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.2.0...v1.3.0) (2026-05-23)
+
+
+### Features
+
+* **mine:** add /mine slash command and register it ([03ec1d2](https://github.com/HyperSoWeak/yuzu-bot/commit/03ec1d222c9997683ef84b8190a1c56509f40597))
+* **mine:** add board display renderer ([cb7a0d1](https://github.com/HyperSoWeak/yuzu-bot/commit/cb7a0d13d97b2491227a21bd08cc5c946262ed77))
+* **mine:** add cooperative minesweeper mini-game ([295318d](https://github.com/HyperSoWeak/yuzu-bot/commit/295318d907ab5bb78b43c9f926ff78d209a60ab3))
+* **mine:** add game logic with open, flag, and flood fill ([5f58b39](https://github.com/HyperSoWeak/yuzu-bot/commit/5f58b3922c2640844be24900d18581e68aa45fef))
+* **mine:** add in-memory game store with 24h timeout ([87f71e6](https://github.com/HyperSoWeak/yuzu-bot/commit/87f71e6b71ad54ad10fe844f958929db218255cc))
+* **mine:** add mine game types and category ([08fccfe](https://github.com/HyperSoWeak/yuzu-bot/commit/08fccfe11ac678e312f3c1451dc4e9fb25d0f60b))
+* **mine:** add mine placement and adjacency calculation ([83c86c9](https://github.com/HyperSoWeak/yuzu-bot/commit/83c86c9c96edfc05eeb52d5e6bee6f01437dee59))
+
 ## [1.2.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.1.1...v1.2.0) (2026-05-22)
 
 
