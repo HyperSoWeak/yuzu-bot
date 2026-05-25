@@ -55,7 +55,7 @@ docker compose up -d --build
 
 On start the bot container runs `prisma migrate deploy` then `pnpm start`. No manual migration step needed.
 
-Postgres backup: daily `pg_dump` at 03:00 UTC → `./backups/yuzu-YYYYMMDD-HHMMSS.sql.gz`, 7-day retention.
+Postgres backup: daily `pg_dump` at 03:00 UTC → `./backups/yuzu-YYYYMMDD-HHMMSS.sql.gz`, 7-day retention. Optional Google Drive upload via rclone (see [DEPLOY.md](DEPLOY.md#google-drive-sync-optional)).
 
 See [DEPLOY.md](DEPLOY.md) for full setup instructions, env variables, and troubleshooting.
 

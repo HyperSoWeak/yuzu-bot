@@ -86,6 +86,57 @@ gunzip -c backups/yuzu-<timestamp>.sql.gz | \
   docker compose exec -T postgres psql -U yuzu -d yuzu
 ```
 
+### Google Drive sync (optional)
+
+Backups can be uploaded to Google Drive after each dump. This requires a one-time rclone authorisation — no extra software needed on the host.
+
+**1. Generate rclone credentials (one-time)**
+
+Run this in the project root. It starts an interactive config session inside Docker:
+
+```bash
+docker run --rm -it -v $(pwd)/docker/rclone:/config/rclone rclone/rclone config
+```
+
+Follow the prompts:
+
+- `n` → new remote
+- Name: **`gdrive`** (must be exactly this)
+- Storage type: **Google Drive** (enter the number shown)
+- Leave `client_id` and `client_secret` blank (uses rclone's defaults)
+- Scope: **`drive`** (full access) or **`drive.file`** (only files created by rclone)
+- When asked to auto-open browser: if the workstation has a browser, say yes. If not, copy the URL and open it on any machine.
+- Complete the Google authorisation in the browser.
+- `n` for shared drive unless you need one.
+- `q` to quit.
+
+This writes credentials to `docker/rclone/rclone.conf` (gitignored — never committed).
+
+**2. Set destination folder (optional)**
+
+In `.env`, set the Google Drive folder name (defaults to `yuzu-backups`):
+
+```env
+GDRIVE_PATH=yuzu-backups
+```
+
+**3. Restart the backup service**
+
+```bash
+docker compose up -d backup
+```
+
+The next run (or manual trigger) will upload to `gdrive:yuzu-backups/`.
+
+**Verify**
+
+```bash
+docker compose exec backup sh /usr/local/bin/backup.sh
+docker compose exec backup cat /var/log/backup.log
+```
+
+Look for `uploaded to Google Drive` in the output. If credentials are missing or misconfigured, the script prints a `WARNING` and skips the upload without failing the local backup.
+
 ---
 
 ## Stopping / restarting

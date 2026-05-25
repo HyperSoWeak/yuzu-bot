@@ -21,6 +21,7 @@ logs/
 *.swo
 
 backups/
+docker/rclone/rclone.conf
 
 docs/superpowers/plans/
 

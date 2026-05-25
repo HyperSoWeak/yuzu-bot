@@ -51,13 +51,15 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD:-yuzu}
       PGDATABASE: ${POSTGRES_DB:-yuzu}
       BACKUP_RETENTION_DAYS: '7'
+      GDRIVE_PATH: ${GDRIVE_PATH:-yuzu-backups}
     volumes:
       - ${BACKUP_DIR:-./backups}:/backups
       - ./docker/backup.sh:/usr/local/bin/backup.sh:ro
+      - ./docker/rclone:/config/rclone:ro
     entrypoint: ['/bin/sh', '-c']
     command:
       - |
-        apk add --no-cache dcron tzdata >/dev/null
+        apk add --no-cache dcron tzdata rclone >/dev/null
         echo "0 3 * * * sh /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1" > /etc/crontabs/root
         crond -f -l 8
 
