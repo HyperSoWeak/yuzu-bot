@@ -34,8 +34,9 @@ describe('renderBoard', () => {
 
   it('shows timeout reminder while game is playing', () => {
     const game = createGame('g', 'easy');
+    game.lastActionAt = 1_767_225_600_000;
     const out = renderBoard(game);
-    expect(out).toContain('24');
+    expect(out).toContain('⏳ 無操作自動結束：<t:1767312000:F>');
   });
 
   it('shows win message on status won', () => {
@@ -109,8 +110,9 @@ describe('renderStatusText', () => {
 
   it('contains timeout reminder while playing', () => {
     const game = createGame('g', 'easy');
+    game.lastActionAt = 1_767_225_600_000;
     const out = renderStatusText(game);
-    expect(out).toContain('24');
+    expect(out).toContain('⏳ 無操作自動結束：<t:1767312000:F>');
   });
 
   it('contains win message on won', () => {

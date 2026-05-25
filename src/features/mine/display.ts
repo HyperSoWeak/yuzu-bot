@@ -1,4 +1,4 @@
-import { DIFFICULTIES, type CellValue, type MineGame } from './types.js';
+import { DIFFICULTIES, MINE_GAME_TIMEOUT_MS, type CellValue, type MineGame } from './types.js';
 
 const COL_EMOJIS = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵'];
 const ROW_LABELS = [
@@ -34,6 +34,11 @@ function cellEmoji(value: CellValue): string {
   if (value === 'mine') return '💣';
   if (value === 'mine-hit') return '💥';
   return NUM_EMOJIS[value as number] ?? '⬜';
+}
+
+function renderExpiryText(game: MineGame): string {
+  const expiresUnix = Math.floor((game.lastActionAt + MINE_GAME_TIMEOUT_MS) / 1000);
+  return `⏳ 無操作自動結束：<t:${expiresUnix}:F>`;
 }
 
 export function renderBoard(game: MineGame): string {
@@ -75,7 +80,7 @@ export function renderBoard(game: MineGame): string {
   }
 
   if (status === 'playing') {
-    lines.push('⏳ 24 小時無操作自動結束');
+    lines.push(renderExpiryText(game));
     return lines.join('\n');
   }
 
@@ -110,7 +115,7 @@ export function renderStatusText(game: MineGame): string {
   }
 
   if (status === 'playing') {
-    lines.push('⏳ 24 小時無操作自動結束');
+    lines.push(renderExpiryText(game));
     return lines.join('\n');
   }
 

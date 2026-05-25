@@ -71,18 +71,18 @@ const mineCommand: Command = {
     const sub = interaction.options.getSubcommand(true);
 
     if (sub === 'start') {
-      if (getGame(guildId)) {
+      if (await getGame(guildId)) {
         throw new CommandError('目前已有進行中的遊戲，請用 `/mine board` 查看盤面。');
       }
       const difficulty = (interaction.options.getString('difficulty') ?? 'medium') as Difficulty;
       const game = createGame(guildId, difficulty);
-      setGame(guildId, game);
+      await setGame(guildId, game);
       logger.info({ guildId, difficulty }, 'mine game started');
       await replyWithBoard(interaction, game, logger);
       return;
     }
 
-    const game = getGame(guildId);
+    const game = await getGame(guildId);
     if (!game) throw new CommandError('目前沒有進行中的遊戲，請使用 `/mine start` 開始。');
 
     if (sub === 'board') {
@@ -107,8 +107,11 @@ const mineCommand: Command = {
           ? `**${displayName}** 對 ${cellLabel} 和弦展開（+${result.opened} 格）`
           : `**${displayName}** 開了 ${cellLabel}（展開 ${result.opened} 格）`;
       }
-      resetTimeout(guildId);
-      if (game.status !== 'playing') removeGame(guildId);
+      if (game.status === 'playing') {
+        await resetTimeout(guildId);
+      } else {
+        await removeGame(guildId);
+      }
       logger.info(
         { guildId, userId: interaction.user.id, cell: cellLabel, outcome: result.outcome, isChord },
         'mine open',
@@ -123,7 +126,7 @@ const mineCommand: Command = {
         result === 'flagged'
           ? `**${displayName}** 在 ${cellLabel} 插旗`
           : `**${displayName}** 移除 ${cellLabel} 的旗子`;
-      resetTimeout(guildId);
+      await resetTimeout(guildId);
       logger.info({ guildId, userId: interaction.user.id, cell: cellLabel, result }, 'mine flag');
       await replyWithBoard(interaction, game, logger);
     }

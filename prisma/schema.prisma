@@ -88,6 +88,17 @@ model ColorRoleAssignment {
   @@map("color_role_assignments")
 }
 
+model MineGameSession {
+  guildId   String   @id @map("guild_id")
+  state     Json
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([expiresAt])
+  @@map("mine_game_sessions")
+}
+
 model AuditLog {
   id         String   @id @default(cuid())
   guildId    String   @map("guild_id")
