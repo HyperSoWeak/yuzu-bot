@@ -21,15 +21,17 @@ DISCORD_TOKEN=<bot token>
 DISCORD_CLIENT_ID=<application id>
 ```
 
-| Variable                | Default     | Notes                                                                 |
-| ----------------------- | ----------- | --------------------------------------------------------------------- |
-| `DISCORD_OWNER_IDS`     | _(empty)_   | Comma-separated user IDs; owner-only commands won't work without this |
-| `POSTGRES_PASSWORD`     | `yuzu`      | Postgres is loopback-only, but change this on shared servers          |
-| `POSTGRES_USER`         | `yuzu`      |                                                                       |
-| `POSTGRES_DB`           | `yuzu`      |                                                                       |
-| `BACKUP_DIR`            | `./backups` | Host path where `pg_dump` files are written                           |
-| `BACKUP_RETENTION_DAYS` | `7`         | Days to keep backup files                                             |
-| `LOG_LEVEL`             | `info`      | `debug` / `info` / `warn` / `error`                                   |
+| Variable                    | Default        | Notes                                                                 |
+| --------------------------- | -------------- | --------------------------------------------------------------------- |
+| `DISCORD_OWNER_IDS`         | _(empty)_      | Comma-separated user IDs; owner-only commands won't work without this |
+| `POSTGRES_PASSWORD`         | `yuzu`         | Postgres is loopback-only, but change this on shared servers          |
+| `POSTGRES_USER`             | `yuzu`         |                                                                       |
+| `POSTGRES_DB`               | `yuzu`         |                                                                       |
+| `BACKUP_DIR`                | `./backups`    | Host path where `pg_dump` files are written                           |
+| `BACKUP_RETENTION_DAYS`     | `7`            | Days to keep backup files                                             |
+| `GDRIVE_PATH`               | `yuzu-backups` | Google Drive destination folder (requires rclone setup)               |
+| `DISCORD_NOTIFY_CHANNEL_ID` | _(empty)_      | Channel ID for system notifications (backup results, etc.)            |
+| `LOG_LEVEL`                 | `info`         | `debug` / `info` / `warn` / `error`                                   |
 
 > **Do not set `DATABASE_URL`** — Docker Compose assembles it from `POSTGRES_*` and injects it automatically.
 
