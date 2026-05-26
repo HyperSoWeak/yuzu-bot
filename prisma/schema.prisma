@@ -60,17 +60,14 @@ model ReactionRoleMenu {
 }
 
 model ReactionRoleMapping {
-  id       String  @id @default(cuid())
-  menuId   String  @map("menu_id")
-  /// unicode emoji or custom emoji id (`name:id`); null when buttonId is set
-  emoji    String?
-  /// custom_id for component buttons; null when emoji is set
-  buttonId String? @map("button_id")
-  roleId   String  @map("role_id")
+  id     String  @id @default(cuid())
+  menuId String  @map("menu_id")
+  roleId String  @map("role_id")
+  label  String?
 
   menu ReactionRoleMenu @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
-  @@unique([menuId, emoji, buttonId])
+  @@unique([menuId, roleId])
   @@map("reaction_role_mappings")
 }
 
