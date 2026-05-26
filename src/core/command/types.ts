@@ -12,7 +12,7 @@ export const COMMAND_CATEGORIES = [
   'keyword',
   'achievement',
   'leaderboard',
-  'reaction-role',
+  'role-menu',
   'color-role',
   'mine',
   'owner',

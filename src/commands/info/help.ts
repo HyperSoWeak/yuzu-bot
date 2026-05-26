@@ -8,7 +8,7 @@ const CATEGORY_LABELS: Record<CommandCategory, string> = {
   keyword: '關鍵字',
   achievement: '成就',
   leaderboard: '排行榜',
-  'reaction-role': 'Reaction Role',
+  'role-menu': 'Role Menu',
   'color-role': 'Color Role',
   mine: '小遊戲',
   owner: 'Owner Only',
