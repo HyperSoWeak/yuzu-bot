@@ -17,12 +17,12 @@ export async function getOrCreateMenu(input: {
   channelId: string;
   messageId: string;
 }): Promise<MenuWithMappings> {
-  const existing = await prisma.reactionRoleMenu.findUnique({
+  return prisma.reactionRoleMenu.upsert({
     where: { messageId: input.messageId },
+    update: {},
+    create: input,
     include: { mappings: true },
   });
-  if (existing) return existing;
-  return prisma.reactionRoleMenu.create({ data: input, include: { mappings: true } });
 }
 
 export async function addRoleButton(input: {
