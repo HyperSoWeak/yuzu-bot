@@ -1,4 +1,4 @@
-import { DIFFICULTIES, MINE_GAME_TIMEOUT_MS, type CellValue, type MineGame } from './types.js';
+import { DIFFICULTIES, MAX_CONSECUTIVE_STEPS, type CellValue, type MineGame } from './types.js';
 
 const COL_EMOJIS = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵'];
 const ROW_LABELS = [
@@ -36,9 +36,9 @@ function cellEmoji(value: CellValue): string {
   return NUM_EMOJIS[value as number] ?? '⬜';
 }
 
-function renderExpiryText(game: MineGame): string {
-  const expiresUnix = Math.floor((game.lastActionAt + MINE_GAME_TIMEOUT_MS) / 1000);
-  return `⏳ 無操作自動結束：<t:${expiresUnix}:F>`;
+function renderConsecutiveText(game: MineGame): string | null {
+  if (!game.lastPlayerId) return null;
+  return `\u{1F4A1} <@${game.lastPlayerId}> 已連續操作 ${game.consecutiveSteps}／${MAX_CONSECUTIVE_STEPS} 步`;
 }
 
 export function renderBoard(game: MineGame): string {
@@ -57,7 +57,7 @@ export function renderBoard(game: MineGame): string {
 
   const lines: string[] = [];
 
-  lines.push(`💣 **合作踩地雷** ｜ ${DIFF_LABELS[difficulty]} ｜ 地雷：${mineCount}`);
+  lines.push(`\u{1F4A3} **合作踩地雷** ｜ ${DIFF_LABELS[difficulty]} ｜ 地雷：${mineCount}`);
   lines.push('');
   lines.push('\u3000' + COL_EMOJIS.slice(0, cols).join('\u200c'));
 
@@ -73,25 +73,28 @@ export function renderBoard(game: MineGame): string {
   lines.push('');
 
   const flagCount = cells.filter((c) => c === 'flagged').length;
-  lines.push(`✅ 已開：${safeOpened}／${totalSafe}\u3000🚩 旗子：${flagCount}`);
+  lines.push(`✅ 已開：${safeOpened}／${totalSafe}\u3000\u{1F6A9} 旗子：${flagCount}`);
 
   if (lastActionDesc) {
-    lines.push(`👣 上一步：${lastActionDesc}`);
+    lines.push(`\u{1F463} 上一步：${lastActionDesc}`);
   }
 
   if (status === 'playing') {
-    lines.push(renderExpiryText(game));
+    const consecutive = renderConsecutiveText(game);
+    if (consecutive) lines.push(consecutive);
     return lines.join('\n');
   }
 
   lines.push('');
-  lines.push(status === 'won' ? '🎉 **全員勝利！清掉所有格子！**' : '💥 **遊戲結束！**');
+  lines.push(
+    status === 'won' ? '\u{1F389} **全員勝利！清掉所有格子！**' : '\u{1F4A5} **遊戲結束！**',
+  );
 
   if (Object.keys(playerRecords).length > 0) {
     lines.push('');
-    lines.push('📊 **本局統計：**');
+    lines.push('\u{1F4CA} **本局統計：**');
     for (const [userId, record] of Object.entries(playerRecords)) {
-      const tag = record.hitMine ? '\u3000（💀 終結者）' : '';
+      const tag = record.hitMine ? '\u3000（\u{1F480} 終結者）' : '';
       lines.push(`<@${userId}>\u3000${record.moves} 步\u3000${record.flagsPlaced} 旗${tag}`);
     }
   }
@@ -105,28 +108,31 @@ export function renderStatusText(game: MineGame): string {
 
   const lines: string[] = [];
 
-  lines.push(`💣 **合作踩地雷** ｜ ${DIFF_LABELS[difficulty]} ｜ 地雷：${mineCount}`);
+  lines.push(`\u{1F4A3} **合作踩地雷** ｜ ${DIFF_LABELS[difficulty]} ｜ 地雷：${mineCount}`);
 
   const flagCount = cells.filter((c) => c === 'flagged').length;
-  lines.push(`✅ 已開：${safeOpened}／${totalSafe}\u3000🚩 旗子：${flagCount}`);
+  lines.push(`✅ 已開：${safeOpened}／${totalSafe}\u3000\u{1F6A9} 旗子：${flagCount}`);
 
   if (lastActionDesc) {
-    lines.push(`👣 上一步：${lastActionDesc}`);
+    lines.push(`\u{1F463} 上一步：${lastActionDesc}`);
   }
 
   if (status === 'playing') {
-    lines.push(renderExpiryText(game));
+    const consecutive = renderConsecutiveText(game);
+    if (consecutive) lines.push(consecutive);
     return lines.join('\n');
   }
 
   lines.push('');
-  lines.push(status === 'won' ? '🎉 **全員勝利！清掉所有格子！**' : '💥 **遊戲結束！**');
+  lines.push(
+    status === 'won' ? '\u{1F389} **全員勝利！清掉所有格子！**' : '\u{1F4A5} **遊戲結束！**',
+  );
 
   if (Object.keys(playerRecords).length > 0) {
     lines.push('');
-    lines.push('📊 **本局統計：**');
+    lines.push('\u{1F4CA} **本局統計：**');
     for (const [userId, record] of Object.entries(playerRecords)) {
-      const tag = record.hitMine ? '\u3000（💀 終結者）' : '';
+      const tag = record.hitMine ? '\u3000（\u{1F480} 終結者）' : '';
       lines.push(`<@${userId}>\u3000${record.moves} 步\u3000${record.flagsPlaced} 旗${tag}`);
     }
   }

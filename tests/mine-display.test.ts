@@ -32,11 +32,19 @@ describe('renderBoard', () => {
     expect(out).toContain('TestUser');
   });
 
-  it('shows timeout reminder while game is playing', () => {
+  it('shows consecutive steps when lastPlayerId is set', () => {
     const game = createGame('g', 'easy');
-    game.lastActionAt = 1_767_225_600_000;
+    game.lastPlayerId = 'user-123';
+    game.consecutiveSteps = 3;
     const out = renderBoard(game);
-    expect(out).toContain('⏳ 無操作自動結束：<t:1767312000:F>');
+    expect(out).toContain('<@user-123>');
+    expect(out).toContain('3／5');
+  });
+
+  it('does not show consecutive steps before game starts', () => {
+    const game = createGame('g', 'easy');
+    const out = renderBoard(game);
+    expect(out).not.toContain('已連續操作');
   });
 
   it('shows win message on status won', () => {
@@ -108,11 +116,13 @@ describe('renderStatusText', () => {
     expect(out).toContain('Tester');
   });
 
-  it('contains timeout reminder while playing', () => {
+  it('contains consecutive steps while playing', () => {
     const game = createGame('g', 'easy');
-    game.lastActionAt = 1_767_225_600_000;
+    game.lastPlayerId = 'user-abc';
+    game.consecutiveSteps = 2;
     const out = renderStatusText(game);
-    expect(out).toContain('⏳ 無操作自動結束：<t:1767312000:F>');
+    expect(out).toContain('<@user-abc>');
+    expect(out).toContain('2／5');
   });
 
   it('contains win message on won', () => {

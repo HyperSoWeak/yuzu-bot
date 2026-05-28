@@ -1,6 +1,12 @@
 import { CommandError } from '@/core/command/errors.js';
 import { computeAdjacency, placeMines } from './board.js';
-import { DIFFICULTIES, type CellValue, type Difficulty, type MineGame } from './types.js';
+import {
+  DIFFICULTIES,
+  MAX_CONSECUTIVE_STEPS,
+  type CellValue,
+  type Difficulty,
+  type MineGame,
+} from './types.js';
 
 export function createGame(guildId: string, difficulty: Difficulty): MineGame {
   const { cols, rows, mines: mineCount } = DIFFICULTIES[difficulty];
@@ -18,6 +24,7 @@ export function createGame(guildId: string, difficulty: Difficulty): MineGame {
     safeOpened: 0,
     totalSafe: total - mineCount,
     lastPlayerId: null,
+    consecutiveSteps: 0,
     playerRecords: {},
     lastActionDesc: null,
     startedAt: Date.now(),
@@ -46,13 +53,8 @@ function validateMove(game: MineGame, userId: string): void {
   if (game.status !== 'playing') {
     throw new CommandError('遊戲已結束。');
   }
-  if (game.lastPlayerId === userId) {
-    throw new CommandError('不能連續操作，請等待其他玩家。');
-  }
-  const { maxMovesPerPlayer } = DIFFICULTIES[game.difficulty];
-  const moves = game.playerRecords[userId]?.moves ?? 0;
-  if (moves >= maxMovesPerPlayer) {
-    throw new CommandError(`你已達到本局操作上限（${maxMovesPerPlayer} 步）。`);
+  if (game.lastPlayerId === userId && game.consecutiveSteps >= MAX_CONSECUTIVE_STEPS) {
+    throw new CommandError(`你已連續操作 ${MAX_CONSECUTIVE_STEPS} 步，請讓其他玩家先行動。`);
   }
 }
 
@@ -114,6 +116,7 @@ export function openCell(game: MineGame, index: number, userId: string): OpenRes
   ensureRecord(game, userId);
   const record = game.playerRecords[userId]!;
   record.moves++;
+  game.consecutiveSteps = game.lastPlayerId === userId ? game.consecutiveSteps + 1 : 1;
   game.lastPlayerId = userId;
   game.lastActionAt = Date.now();
 
@@ -172,6 +175,7 @@ function chordCell(game: MineGame, index: number, userId: string): ChordResult {
   ensureRecord(game, userId);
   const record = game.playerRecords[userId]!;
   record.moves++;
+  game.consecutiveSteps = game.lastPlayerId === userId ? game.consecutiveSteps + 1 : 1;
   game.lastPlayerId = userId;
   game.lastActionAt = Date.now();
 
@@ -218,6 +222,7 @@ export function toggleFlag(game: MineGame, index: number, userId: string): FlagR
   ensureRecord(game, userId);
   const record = game.playerRecords[userId]!;
   record.moves++;
+  game.consecutiveSteps = game.lastPlayerId === userId ? game.consecutiveSteps + 1 : 1;
   game.lastPlayerId = userId;
   game.lastActionAt = Date.now();
 

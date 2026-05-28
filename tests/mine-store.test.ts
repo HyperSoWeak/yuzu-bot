@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createGame } from '../src/features/mine/game.js';
-import { MINE_GAME_TIMEOUT_MS } from '../src/features/mine/types.js';
 import {
   clearMineStoreForTests,
   getGame,
   removeGame,
-  resetTimeout,
   setGame,
 } from '../src/features/mine/store.js';
 
@@ -31,7 +29,6 @@ vi.mock('@/core/logger.js', () => ({
 
 describe('mine store', () => {
   beforeEach(() => {
-    vi.useRealTimers();
     clearMineStoreForTests();
     prismaMocks.deleteMany.mockReset().mockResolvedValue({ count: 1 });
     prismaMocks.findUnique.mockReset().mockResolvedValue(null);
@@ -40,9 +37,8 @@ describe('mine store', () => {
     loggerMocks.warn.mockReset();
   });
 
-  it('persists a serializable game state with an expiration time', async () => {
+  it('persists a serializable game state', async () => {
     const game = createGame('guild-1', 'easy');
-    game.lastActionAt = 1_767_225_600_000;
     game.minesPlaced = true;
     game.mines = new Set([3, 7, 9]);
     game.cells[3] = 'flagged';
@@ -55,21 +51,17 @@ describe('mine store', () => {
     expect(call.create.guildId).toBe('guild-1');
     expect(call.create.state.mines).toEqual([3, 7, 9]);
     expect(call.create.state.cells[3]).toBe('flagged');
-    expect(call.create.expiresAt).toEqual(new Date(game.lastActionAt + MINE_GAME_TIMEOUT_MS));
     expect(call.update.state.mines).toEqual([3, 7, 9]);
-    expect(call.update.expiresAt).toEqual(new Date(game.lastActionAt + MINE_GAME_TIMEOUT_MS));
   });
 
   it('hydrates a persisted game when memory is empty', async () => {
     const game = createGame('guild-2', 'medium');
-    game.lastActionAt = Date.now();
     game.minesPlaced = true;
     game.mines = new Set([5, 10]);
     game.cells[5] = 'flagged';
     prismaMocks.findUnique.mockResolvedValue({
       guildId: game.guildId,
       state: { ...game, mines: [5, 10] },
-      expiresAt: new Date(Date.now() + MINE_GAME_TIMEOUT_MS),
     });
 
     const restored = await getGame(game.guildId);
@@ -81,34 +73,17 @@ describe('mine store', () => {
     expect(restored?.cells[5]).toBe('flagged');
   });
 
-  it('removes expired persisted games while hydrating', async () => {
-    const game = createGame('guild-expired', 'easy');
+  it('defaults consecutiveSteps to 0 when missing from persisted state', async () => {
+    const game = createGame('guild-old', 'easy');
+    const stateWithoutConsecutive = { ...game, mines: [], consecutiveSteps: undefined };
     prismaMocks.findUnique.mockResolvedValue({
       guildId: game.guildId,
-      state: { ...game, mines: [] },
-      expiresAt: new Date(Date.now() - 1),
+      state: stateWithoutConsecutive,
     });
 
-    await expect(getGame(game.guildId)).resolves.toBeUndefined();
-    expect(prismaMocks.deleteMany).toHaveBeenCalledWith({ where: { guildId: game.guildId } });
-  });
+    const restored = await getGame(game.guildId);
 
-  it('persists the current state and refreshed expiration after an action', async () => {
-    const game = createGame('guild-3', 'easy');
-    await setGame(game.guildId, game);
-    prismaMocks.updateMany.mockClear();
-
-    game.lastActionAt += 60_000;
-    game.cells[1] = 'flagged';
-    game.mines = new Set([1]);
-
-    await resetTimeout(game.guildId);
-
-    const call = prismaMocks.updateMany.mock.calls[0]?.[0];
-    expect(call.where).toEqual({ guildId: game.guildId });
-    expect(call.data.state.cells[1]).toBe('flagged');
-    expect(call.data.state.mines).toEqual([1]);
-    expect(call.data.expiresAt).toEqual(new Date(game.lastActionAt + MINE_GAME_TIMEOUT_MS));
+    expect(restored?.consecutiveSteps).toBe(0);
   });
 
   it('removes games from memory and persistence', async () => {
@@ -119,5 +94,16 @@ describe('mine store', () => {
 
     await expect(getGame(game.guildId)).resolves.toBeUndefined();
     expect(prismaMocks.deleteMany).toHaveBeenCalledWith({ where: { guildId: game.guildId } });
+  });
+
+  it('returns cached game without DB query on second call', async () => {
+    const game = createGame('guild-5', 'easy');
+    await setGame(game.guildId, game);
+    prismaMocks.findUnique.mockClear();
+
+    const result = await getGame(game.guildId);
+
+    expect(result).toBe(game);
+    expect(prismaMocks.findUnique).not.toHaveBeenCalled();
   });
 });

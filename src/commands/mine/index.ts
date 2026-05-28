@@ -4,7 +4,7 @@ import type { Command } from '@/core/command/types.js';
 import type { Logger } from '@/core/logger.js';
 import { CommandError } from '@/core/command/errors.js';
 import { createGame, openCell, parseCell, toggleFlag } from '@/features/mine/game.js';
-import { getGame, removeGame, resetTimeout, setGame } from '@/features/mine/store.js';
+import { getGame, removeGame, setGame } from '@/features/mine/store.js';
 import { renderBoard, renderStatusText } from '@/features/mine/display.js';
 import { renderBoardImage } from '@/features/mine/render.js';
 import type { Difficulty, MineGame } from '@/features/mine/types.js';
@@ -108,7 +108,7 @@ const mineCommand: Command = {
           : `**${displayName}** 開了 ${cellLabel}（展開 ${result.opened} 格）`;
       }
       if (game.status === 'playing') {
-        await resetTimeout(guildId);
+        await setGame(guildId, game);
       } else {
         await removeGame(guildId);
       }
@@ -126,7 +126,7 @@ const mineCommand: Command = {
         result === 'flagged'
           ? `**${displayName}** 在 ${cellLabel} 插旗`
           : `**${displayName}** 移除 ${cellLabel} 的旗子`;
-      await resetTimeout(guildId);
+      await setGame(guildId, game);
       logger.info({ guildId, userId: interaction.user.id, cell: cellLabel, result }, 'mine flag');
       await replyWithBoard(interaction, game, logger);
     }

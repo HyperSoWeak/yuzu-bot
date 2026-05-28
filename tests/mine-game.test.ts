@@ -87,33 +87,43 @@ describe('openCell', () => {
     expect(() => openCell(game, 5, 'user-a')).toThrow(CommandError);
   });
 
-  it('throws if same player goes twice in a row', () => {
+  it('allows same player to move up to MAX_CONSECUTIVE_STEPS times in a row', () => {
     const game = createGame('g', 'easy');
-    openCell(game, 0, 'user-a');
+    game.minesPlaced = true;
+    game.mines = new Set([63]);
+    game.adjacency = new Array(64).fill(1);
+    for (let i = 0; i < 5; i++) {
+      expect(() => openCell(game, i, 'user-a')).not.toThrow();
+    }
     const idx = game.cells.findIndex((c) => c === 'hidden');
     expect(() => openCell(game, idx, 'user-a')).toThrow(CommandError);
   });
 
-  it('allows same player again after another player moves', () => {
+  it('resets consecutive count after another player moves', () => {
+    const game = createGame('g', 'easy');
+    game.minesPlaced = true;
+    game.mines = new Set([63]);
+    game.adjacency = new Array(64).fill(1);
+    for (let i = 0; i < 5; i++) {
+      openCell(game, i, 'user-a');
+    }
+    openCell(game, 5, 'user-b');
+    expect(() => openCell(game, 6, 'user-a')).not.toThrow();
+  });
+
+  it('tracks consecutiveSteps correctly', () => {
     const game = createGame('g', 'easy');
     game.minesPlaced = true;
     game.mines = new Set([63]);
     game.adjacency = new Array(64).fill(1);
     openCell(game, 0, 'user-a');
-    expect(game.status).toBe('playing');
-    openCell(game, 1, 'user-b');
-    expect(game.status).toBe('playing');
-    expect(() => openCell(game, 2, 'user-a')).not.toThrow();
-  });
-
-  it('throws when player exceeds maxMovesPerPlayer', () => {
-    const game = createGame('g', 'easy'); // k = 8
-    game.minesPlaced = true;
-    game.mines = new Set();
-    game.adjacency = new Array(64).fill(1);
-    game.playerRecords['user-a'] = { moves: 8, flagsPlaced: 0, hitMine: false };
-    game.lastPlayerId = 'user-b';
-    expect(() => openCell(game, 5, 'user-a')).toThrow(CommandError);
+    expect(game.consecutiveSteps).toBe(1);
+    openCell(game, 1, 'user-a');
+    expect(game.consecutiveSteps).toBe(2);
+    openCell(game, 2, 'user-b');
+    expect(game.consecutiveSteps).toBe(1);
+    openCell(game, 3, 'user-a');
+    expect(game.consecutiveSteps).toBe(1);
   });
 
   it('throws if cell is already open', () => {
@@ -261,10 +271,11 @@ describe('chord (via openCell on an open number)', () => {
     expect(() => openCell(game, 18, 'user-a')).toThrow(CommandError);
   });
 
-  it('throws if same player acts twice in a row', () => {
+  it('throws if same player has used all consecutive steps', () => {
     const game = makeChordGame();
     game.cells[10] = 'flagged';
     game.lastPlayerId = 'user-a';
+    game.consecutiveSteps = 5;
     expect(() => openCell(game, 18, 'user-a')).toThrow(CommandError);
   });
 
