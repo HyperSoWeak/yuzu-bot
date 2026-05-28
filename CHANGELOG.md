@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.6.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.5.0...v1.6.0) (2026-05-28)
+
+
+### Features
+
+* **backup:** add optional Google Drive upload via rclone ([6aa2a4d](https://github.com/HyperSoWeak/yuzu-bot/commit/6aa2a4d8667c9441f99e537bc30c9714558eee2a))
+* **backup:** send Discord notification on backup completion ([6d043ba](https://github.com/HyperSoWeak/yuzu-bot/commit/6d043ba0ec18aa1e117d7a4be0bb98c854cc935d))
+* **mine:** persist active games across restarts ([d4f101e](https://github.com/HyperSoWeak/yuzu-bot/commit/d4f101e1aa435a33ab6ad4806b9cb075a6223e86))
+* **mine:** replace per-player move cap with 5-step consecutive limit ([4308371](https://github.com/HyperSoWeak/yuzu-bot/commit/430837186b367cf3cadd62ddc23a45023b0829b4))
+* **role-menu:** replace reaction-role with button-only role-menu ([e8a7069](https://github.com/HyperSoWeak/yuzu-bot/commit/e8a7069b9de69b47d43a3d8b9d4b6d9edc7ca3a1))
+* **role-menu:** replace reaction-role with button-only role-menu ([0baded3](https://github.com/HyperSoWeak/yuzu-bot/commit/0baded3987ac4413a000e32183e7543a5cf21747))
+
+
+### Bug Fixes
+
+* **role-menu:** fix TOCTOU race in getOrCreateMenu using upsert ([fbb4fb5](https://github.com/HyperSoWeak/yuzu-bot/commit/fbb4fb51d62fec421a0befb06ee3091b7c613486))
+* **role-menu:** replace deprecated ephemeral:true with MessageFlags.Ephemeral ([52e32ec](https://github.com/HyperSoWeak/yuzu-bot/commit/52e32eccf2100187db72ee29fbb43d62b74b2013))
+
 ## [1.5.0](https://github.com/HyperSoWeak/yuzu-bot/compare/v1.4.0...v1.5.0) (2026-05-23)
 
 
